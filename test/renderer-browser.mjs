@@ -1,0 +1,50 @@
+import {chromium} from 'playwright-core';
+import {createApp} from '../server.mjs';
+import {existsSync,mkdirSync,mkdtempSync,writeFileSync} from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+mkdirSync('.qa',{recursive:true});
+const app=createApp({port:0,dataDir:mkdtempSync(path.resolve('.qa','renderer-'))});await app.listen();
+const base=`http://localhost:${app.server.address().port}`;
+const executablePath=process.env.CHROME_PATH||['C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe','C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'].find(existsSync);
+const browser=await chromium.launch({executablePath,headless:true});const errors=[];
+try{
+ const page=await browser.newPage({viewport:{width:1920,height:1080}});page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(base+'/healthz');
+ await page.evaluate(async()=>{
+  document.body.innerHTML='<div id="arena" style="width:1500px;height:1060px"></div>';document.body.style='margin:0;background:#080f1c';
+  window.__now=0;window.__hidden=false;Object.defineProperty(performance,'now',{value:()=>window.__now});
+  Object.defineProperty(document,'hidden',{get:()=>window.__hidden,configurable:true});window.requestAnimationFrame=()=>0;
+  const {Arena}=await import('/assets/arena.js'),{getScenario}=await import('/assets/fixtures.js'),{FrameCursor}=await import('/assets/motion.js');
+  window.a=new Arena(document.querySelector('#arena'));window.scenario=await getScenario('battle');window.cursor=new FrameCursor(scenario.frames);
+  window.events=[];a.onImpact=e=>events.push(e);a.onRail=e=>events.push(e);a.onRingout=e=>events.push(e);a.onOut=e=>events.push(e);
+  a.roster(scenario.state.players);
+  window.advance=ms=>{window.__now=ms;for(const f of cursor.advance(ms/1000).frames)a.update(f);a.loop();};
+  window.pose=()=>{const objects=[];a.scene.traverse(o=>objects.push({p:o.position.toArray(),r:o.rotation.toArray(),s:o.scale.toArray(),v:o.visible,opacity:o.material?.opacity,intensity:o.intensity}));return {clock:a.clock,objects,camera:a.camera.position.toArray(),t:a.playbackFrame?.t,events:events.length,replay:a.replay?.elapsed};};
+  for(let t=0;t<=3000;t+=1000/30)advance(t);
+ });
+ const geometry=await page.evaluate(()=>({teeth:a.rails.children.filter(o=>o.isInstancedMesh).length,railSegments:a.rails.children.filter(o=>o.geometry?.type==='TorusGeometry').length,walls:a.stage.children.filter(o=>o.geometry?.type==='CylinderGeometry').length,radius:a.arenaRadius,parts:[...a.tops.values()][0].rotor.children.length}));
+ assert.equal(geometry.teeth,1);assert.equal(geometry.railSegments,6);assert.equal(geometry.walls,3);assert.equal(geometry.parts,3);assert.ok(Math.abs(geometry.radius-6.4)<1e-8);
+ await page.screenshot({path:'.qa/metal-renderer-battle.png'});
+ const replay=await page.evaluate(()=>{
+  for(let t=3016;t<=4700;t+=1000/30)advance(t);
+  return {replaying:a.replaying,event:a.replay?.event,elapsed:a.replay?.elapsed,events:events.length};
+ });
+ assert.ok(replay.replaying,'real fixture ringout starts replay');
+ await page.screenshot({path:'.qa/metal-renderer-ringout.png'});
+ await page.evaluate(()=>a.setPaused(true));const frozen=await page.evaluate(()=>pose());
+ await page.evaluate(()=>{window.__now+=700;a.loop();});assert.deepEqual(await page.evaluate(()=>pose()),frozen,'pause freezes geometry, camera, timeline and effects');
+ await page.evaluate(()=>a.setPaused(false));
+ const silent=await page.evaluate(()=>{const before=events.length;for(let i=0;i<30;i++){window.__now+=1000/60;a.loop();}return {before,after:events.length,replaying:a.replaying};});
+ assert.ok(silent.replaying);assert.equal(silent.before,silent.after,'replayed impacts never notify live audio');
+ await page.evaluate(()=>{window.__hidden=true;document.dispatchEvent(new Event('visibilitychange'));});const hidden=await page.evaluate(()=>pose());
+ await page.evaluate(()=>{window.__now+=3000;a.loop();});assert.deepEqual(await page.evaluate(()=>pose()),hidden,'hidden tab freezes replay and drawing');
+ await page.evaluate(()=>{window.__hidden=false;document.dispatchEvent(new Event('visibilitychange'));});
+ await page.emulateMedia({reducedMotion:'reduce'});await page.waitForTimeout(100);
+ const reduced=await page.evaluate(()=>{a.loop();return {reduced:a.reduced,replaying:a.replaying,trails:[...a.tops.values()].some(o=>o.trail.visible),sparks:[...a.tops.values()].some(o=>o.contact.visible&&o.sparks.some(s=>s.visible))};});
+ assert.equal(reduced.reduced,true);assert.equal(reduced.replaying,false);assert.equal(reduced.trails,false);assert.equal(reduced.sparks,false);
+ await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{a.container.style='width:390px;height:844px';a.fit();a.loop();});
+ await page.screenshot({path:'.qa/metal-renderer-mobile.png'});
+ assert.deepEqual(errors,[]);assert.equal(app.rooms.size,0);
+ const result={passed:true,geometry,replay,silent,reduced,pause:true,hidden:true,errors};writeFileSync('.qa/metal-renderer-results.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result));
+}finally{await browser.close();await app.close();}

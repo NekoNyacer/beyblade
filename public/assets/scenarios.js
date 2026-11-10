@@ -1,0 +1,9 @@
+import {scenes} from './fixtures.js';
+const $=id=>document.getElementById(id);let current='duel',paused=false;
+$('scene-nav').innerHTML=scenes.map(s=>`<button data-scene="${s.id}">${s.label}</button>`).join('');
+function render(push=false){const scene=scenes.find(s=>s.id===current)||scenes[0];current=scene.id;for(const b of document.querySelectorAll('[data-scene]'))b.setAttribute('aria-current',b.dataset.scene===current?'page':'false');$('scene-title').textContent=scene.label;$('scene-description').textContent=scene.description;const url='/display?preview='+current;$('scene-frame').contentWindow.location.replace(url);$('open-scene').href=url;paused=false;$('play-pause').textContent='暫停';$('play-pause').disabled=current==='result';$('sound-toggle').textContent='開啟音效';$('scenario-status').textContent='同一套戰鬥模擬 · 固定種子可重播比較 · 不建立活動房間';history[push?'pushState':'replaceState'](null,'','/scenarios?scene='+current);fit();}
+$('scene-nav').onclick=e=>{const b=e.target.closest('[data-scene]');if(b){current=b.dataset.scene;render(true);}};
+$('restart').onclick=()=>render();$('play-pause').onclick=()=>{paused=!paused;$('scene-frame').contentWindow.postMessage({type:'scenario-control',action:paused?'pause':'resume'},location.origin);$('play-pause').textContent=paused?'繼續':'暫停';};
+$('sound-toggle').onclick=async()=>{const button=$('scene-frame').contentDocument?.getElementById('sound');if(button?.onclick){await button.onclick();$('sound-toggle').textContent=button.textContent.includes('已開啟')?'音效已開啟':'重試音效';}};
+function fromUrl(){current=new URLSearchParams(location.search).get('scene')||'duel';if(current==='ringout')current='pocket';render();}window.addEventListener('popstate',fromUrl);
+function fit(){const el=$('preview-stage');el.classList.toggle('scaled-display',el.clientWidth<900);el.style.setProperty('--preview-scale',String(el.clientWidth/1280));}new ResizeObserver(fit).observe($('preview-stage'));fromUrl();

@@ -1,0 +1,91 @@
+# 手機實戰與立體衝擊版
+
+版本 `1.6.0-preview.1`。執行 `start-phone-test.cmd`，在電腦開啟 http://localhost:3215/launch-test 。手機與電腦使用同一台路由器，掃描頁面 QR、輸入名字、確認組裝；於電腦按「開始倒數與發射」。手機使用極簡綠色金屬拉環；SHOOT 亮起時，握住拉環向右抽到底。比賽在 SHOOT 當下立即開始，不等待手機操作；及時收到的拉環輸入只做一次有限的發射修正。內建一位標準力道測試對手，一支手機即可反覆試玩；比賽後按「再發射一次」。
+
+拉環現在量測滑動速度，依可拉行程正規化，不再使用距離或 ±2% 力道限制。及時收到的拉速與手勢傾角會微調初始轉速與移動；未回應則維持標準發射。單一衝刺口的環形齒軌需要接近切線且搭齒才會加速；猛拉可能甩軌、撞上透明護罩，損失轉速。主機計算真正的垂直位置、撞飛、護罩反彈、陡降坑洞撞底及斜面彈出。高速陀螺呈圓盤模糊輪廓，低速時出現進動與傾倒。
+
+手機實戰服務監聽區網 3215，資料獨立保存在 `.qa/launch-lab-data`；不修改系統防火牆或路由器。`/scenarios` 可觀看固定種子的預錄模擬，`/` 保留原主持流程。服務重新啟動後會載入新的發射流程；手機重整頁面即可取得新介面。
+
+檢查：`npm test`、`npm run test:phone`、`npm run test:integration`。重建預覽：`node scripts/generate-scenarios.mjs`。此版仍為娛樂模擬，轉速與手感未經真實陀螺硬體校準；實體手機操作可再依回饋調整。下方為原主持操作，發射規則以本節為準。
+
+## 筆電／全新複製快速開始
+
+1. 安裝 Node.js 24 LTS、Git 與 Chrome 或 Edge。
+2. 執行 `git clone https://github.com/NekoNyacer/beyblade.git`，再執行 `cd beyblade`。
+3. 首次執行 `npm ci` 安裝鎖定版本的依賴，再執行 `npm test`。
+4. 選擇一種啟動方式，保持終端機開啟；按 Ctrl+C 停止：
+   - `npm run preview`：本機預覽 http://localhost:3214/scenarios 。
+   - `npm run phone-test`：手機試玩 http://localhost:3215/launch-test ；手機與電腦連到同一區網，再掃描頁面 QR。
+   - `npm start`：主持控制台 http://localhost:3210/ 。
+
+`.cmd` 啟動檔只供 Windows；上述 npm 指令可用於 Windows、macOS 與 Linux。資料與依賴不隨 Git 傳送，新電腦不會自動帶入舊活動。
+
+瀏覽器檢查使用已安裝的 Chromium 系瀏覽器，`playwright-core` 不會下載瀏覽器。執行 `npm run test:phone` 或 `npm run test:integration` 時，若瀏覽器不在預設 Windows 路徑，請先將 `CHROME_PATH` 設成實際執行檔位置。例如 PowerShell：`$env:CHROME_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'`；macOS：`export CHROME_PATH='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'`；Linux 可使用已安裝瀏覽器的路徑，例如 `/usr/bin/google-chrome`。僅啟動遊戲不需要設定此變數。
+
+歷史 QA 工具不是全新複製後的必要檢查：`scripts/metal-browser-check.mjs` 需要另行保留的 `.qa/metal-source-baseline.json`；`scripts/metal-reel-decode.mjs` 需要 `.qa/metal-rail-review.webm`。這些測試產物不納入版本控制。`scripts/feature-check.mjs` 與 `test/renderer-browser.mjs` 保留舊版場景斷言；目前版優先使用上述手機與場景整合檢查。
+
+## 戰鬥盤重製（2026-11-11）
+
+中央白色圓盤平坦，外圈是連續陡坡，綠色齒輪位於坡頂；六個空洞位於碗緣外，正常行走不會落坑。高速沿圈行走，搭齒後沿圈加速，從上方唯一出口衝向中央；中速橫向穿越，低速逐漸留在原處。每顆陀螺都有頭頂玩家姓名、編號與顏色指標。
+
+低速晃動已縮小；能量歸零仍完成殘餘旋轉與停倒，接近靜止才淘汰及顯示結果。RPM 顯示使用實際模擬角速度。預覽：http://localhost:3215/scenarios 。實際手機試玩：http://localhost:3215/launch-test 。
+
+檢查：`npm test`、`npm run test:integration`、`npm run test:phone`；更新預錄示範：`node scripts/generate-scenarios.mjs`。
+
+---
+
+# 戰鬥陀螺｜尾牙競技場
+
+獨立本機 Node + Three.js 專案。主機主持控制台、1920×1080 投影畫面、手機 QR 加入與滑動拉環。沒有雲端部署、資料庫或帳號服務，與旅店專案無關。
+
+## 快速開始
+
+1. 雙擊 `start-game.cmd`，保留視窗。
+2. Chrome / Edge 開啟 `http://localhost:3214`。
+3. 建立活動，選擇賽制。選擇手機可連的區網 IP，掃 QR 加入。
+4. 開啟投影畫面，移到第二螢幕，全螢幕並開啟音效。
+5. 手機選 Blade / Ratchet / Bit 並確認組裝 → 準備本場 → 主持人開始倒數 → 3、2、1 → GO（2 秒）→ SHOOT 同時落下進場（不等待手機） → 等待結果 → 下一場。
+
+完整繁體中文操作指南在 `public/guide.html`，啟動後也能從控制台「活動操作指南」開啟。
+
+## 現場需求
+
+- 建議安裝 Node.js 24 LTS（最低支援 22+）。已安裝的 Chrome / Edge 與可用 WebGL 硬體加速。
+- 一台主機，投影機/LED 大螢幕，建議 16:9 1080p。音效由瀏覽器合成，需點擊啟用。
+- 建議 10 位、支援 2–16 位選手。觀眾只觀看投影，不要把千人手機接進服務。
+- 主機有線連專用路由器、手機同 Wi-Fi。使用的服務埠必須在該私人網路可達（npm start 預設 3210、start-game.cmd 為 3214、手機試玩為 3215）；本專案不修改防火牆。
+- 正式上場前務必用現場手機、Wi-Fi、投影與喇叭彩排。
+
+## 賽制與公平
+
+- 全員混戰：同場，停轉淘汰，最後一人勝出。
+- 一對一淘汰賽：隨機分籤與輪空，10 人共 9 場實際對戰。每場結束由主持人推進。
+- 拉環速度與發射傾角影響初始能量及路徑，每場只提交一次。未操作或斷線使用標準力道。
+- 固定種子的伺服器權威物理模擬同時產生位置、碰撞、能量與勝負；不預選冠軍。畫面不能改變結果。
+- 碰撞、撞罩、坑洞與漸增衰減共同決定每場長度。活動娛樂用途，不宣稱正式物理精度或抽獎認證。
+
+## 開發與驗證
+
+- `npm ci`：首次移到另一台電腦時安裝專案依賴；活動當天已安裝完整即可離線運作。
+- `npm start`：啟動本機服務。
+- `npm test`：核心模擬、賽程、驗證、權限、重連與復原測試。
+- `node scripts/browser-smoke.mjs`：使用已安裝 Chrome/Edge 的整合測試；可設定 CHROME_PATH。測試使用暫時埠與 `.qa` 下的獨立資料，不碰正式 data。
+- `PORT=...` 可替換埠（PowerShell：`$env:PORT=3211; npm start`）。
+
+主要依賴：Three.js、ws、qrcode；playwright-core 只供測試，不下載瀏覽器。所有執行資源由本機提供，沒有 CDN、外部字型、外部音效或 QR 服務。
+
+## 檔案
+
+- `server.mjs`：HTTP/WS、QR、快照恢復。
+- `game.mjs`：物理、拉環與淘汰賽。
+- `public/`：主持、投影、手機三個介面與指南。
+- `BACKEND.md`：通訊協定、資料保存及復原細節。
+- `data/events.json`：首次啟動後的私有活動資料，內含權杖，勿公開。
+- `.qa/`：測試畫面與結果，不是正式活動資料。
+
+## 限制
+
+僅支援可信任區域網路；HTTP 不加密，不應轉發到公網。每個資料夾只執行一個伺服器。主持權限保存在原瀏覽器 localStorage；清除資料會失去主持入口。服務重啟後，未完成對戰需主持人手動確認續賽。請關閉電腦休眠及瀏覽器節能限制。手機使用 Safari / Chrome 時保持分頁開啟；實體設備與場地效果仍需現場彩排。
+## GCP / 遠端版本
+
+本專案也包含公開測試所需的獨立管理金鑰、活動邀請權杖、HTTPS 網址設定與非 root Dockerfile。實際部署請依 DEPLOYMENT.md，使用單一持久實例、私有資料目錄與 HTTPS 反向代理；不要直接將預設區網模式公開。雲端完成後手機可使用不同網路。此資料夾的封裝不代表 GCP 已部署。

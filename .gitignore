@@ -1,0 +1,15 @@
+node_modules/
+data/
+.qa/
+*.log
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+test/event-*/
+test/public-*/
+test/no-url-*/
+test/pair-ws-*/
