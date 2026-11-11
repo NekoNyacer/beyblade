@@ -2,9 +2,11 @@ import * as THREE from '/vendor/three.module.js';
 import {FrameTimeline,RingoutReplay} from './motion.js';
 import {makePart,metalEnvironment,dispose} from './parts.js';
 import {assemblyOffsets} from './part-catalog.js';
-import {railConfigForCount,shoulderHeight,surfaceHeight,surfaceSlope} from './rail-config.js';
+import {railConfigForCount,shoulderHeight,surfaceHeight,surfaceGradient} from './rail-config.js';
 import {buildStadium} from './stadium.js';
 import {buildTopSupport,bowlSkinY,bowlSupportY,flatContactY,restingSupportY} from './top-support.js';
+import {SPARK_CAPACITY,sparkColorsForEvent,SPARK_CLEARANCE,createSparkBurst,resetSparkBurst,advanceSparkBurst,sparkFloorHeight} from './collision-sparks.js';
+import {createCollisionSparkMaterial} from './collision-spark-material.js';
 const TRAIL_POINTS=22, EFFECT_LIMIT=16;
 // Meet the lower disk (y=.27–.45), rather than suggesting contact at floor level.
 const RAIL_CONTACT_HEIGHT=.35;
@@ -25,20 +27,20 @@ export class Arena {
     });
     try {this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}
     catch {container.innerHTML='<p class="webgl-error">無法啟動 3D，請使用開啟硬體加速的 Chrome / Edge。</p>';return;}
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));this.renderer.setClearColor(0x080f1c);
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));this.renderer.setClearColor(0x070b11);
     this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.12;
     this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;container.append(this.renderer.domElement);
-    this.scene=new THREE.Scene();this.env=metalEnvironment(this.renderer);this.scene.environment=this.env.texture;
+    this.scene=new THREE.Scene();this.scene.fog=new THREE.Fog(0x070b11,60,150);this.env=metalEnvironment(this.renderer);this.scene.environment=this.env.texture;
     this.camera=new THREE.PerspectiveCamera(39,1,.1,100);this.home=new THREE.Vector3(0,12.5,11.5);
     this.focus=new THREE.Vector3();this.cameraGoal=new THREE.Vector3();this.camera.position.copy(this.home);
     this.bankAxis=new THREE.Vector3();this.rockEuler=new THREE.Euler();this.rockRotation=new THREE.Quaternion();
     this.floorRotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI/2,0,0));
-    this.scene.add(new THREE.HemisphereLight(0xd7ebff,0x142238,1.05));
-    const fill=new THREE.DirectionalLight(0x83caff,2.3);fill.position.set(5,6,-6);this.scene.add(fill);
-    const rim=new THREE.DirectionalLight(0xe2ffea,2.8);rim.position.set(-5,3,-4);this.scene.add(rim);
-    const key=new THREE.DirectionalLight(0xfff2dc,4);key.position.set(-4,10,5);key.castShadow=true;
+    this.scene.add(new THREE.HemisphereLight(0xd7ebff,0x111822,.65));
+    const fill=new THREE.DirectionalLight(0x91bbde,1.15);fill.position.set(5,6,-6);this.scene.add(fill);
+    const rim=new THREE.DirectionalLight(0xe2f3ff,1.8);rim.position.set(-5,3,-4);this.scene.add(rim);
+    const key=new THREE.DirectionalLight(0xfff5e8,2.8);key.position.set(-4,10,5);key.castShadow=true;
     key.shadow.bias=-.00025;key.shadow.normalBias=.025;key.shadow.mapSize.set(2048,2048);Object.assign(key.shadow.camera,{left:-9,right:9,top:9,bottom:-9});this.scene.add(key);
-    this.contactLight=new THREE.PointLight(0xffcf70,0,3.2,2);this.impactLight=new THREE.PointLight(0xffe1a0,0,4.4,2);
+    this.contactLight=new THREE.PointLight(0xffcf70,0,3.2,2);this.impactLight=new THREE.PointLight(0xffffff,0,4.4,2);
     this.scene.add(this.contactLight,this.impactLight);
     this.stage=new THREE.Group();this.rails=new THREE.Group();this.scene.add(this.stage,this.rails);this.railGeometryKey='';
     const glowCanvas=document.createElement('canvas');glowCanvas.width=glowCanvas.height=64;const glowContext=glowCanvas.getContext('2d'),gradient=glowContext.createRadialGradient(32,32,0,32,32,32);gradient.addColorStop(0,'#ffffffff');gradient.addColorStop(.2,'#ffffffc0');gradient.addColorStop(.55,'#ffffff38');gradient.addColorStop(1,'#ffffff00');glowContext.fillStyle=gradient;glowContext.fillRect(0,0,64,64);this.glowTexture=new THREE.CanvasTexture(glowCanvas);
@@ -50,7 +52,7 @@ export class Arena {
     const w=this.container.clientWidth,h=this.container.clientHeight;if(!w||!h)return;
     this.renderer.setSize(w,h,false);this.camera.aspect=w/h;
     const zoom=Math.max(1,1.3/this.camera.aspect)*(this.arenaRadius+1.45)/5.9;
-    this.home.set(0,12.7*zoom,11.8*zoom);
+    this.home.set(0,12.2*zoom,13*zoom);
     if(!this.replaying){this.camera.position.copy(this.home);this.camera.lookAt(0,0,0);}
     this.camera.updateProjectionMatrix();
   }
@@ -61,12 +63,14 @@ export class Arena {
     const railRadius=Number.isFinite(frame?.railRadius)?frame.railRadius:config.railRadius;
     const angles=frame?.exitAngles||config.exitAngles,half=frame?.exitHalfWidth??config.exitHalfWidth;
     const outer=frame?.ringOutAngles||config.ringOutAngles||[0,Math.PI*2/3,Math.PI*4/3];
-    const outerHalf=frame?.ringOutHalfWidth??config.ringOutHalfWidth??.20;
+    // Older replays specified a single opening width for the entire arena.
+    const outerWidths=frame?.ringOutHalfWidths??(frame?.ringOutHalfWidth!=null
+      ? outer.map(()=>frame.ringOutHalfWidth) : config.ringOutHalfWidths);
     this.arenaRadius=radius;this.railRadius=railRadius;this.pocketFloor=config.pocketFloor;
-    const key=JSON.stringify([radius,railRadius,angles,half,outer,outerHalf]);if(key===this.railGeometryKey)return;
+    const key=JSON.stringify([radius,railRadius,angles,half,outer,outerWidths]);if(key===this.railGeometryKey)return;
     this.railGeometryKey=key;
     for(const group of [this.stage,this.rails]){group.traverse(object=>{if(object.isInstancedMesh)object.dispose();});dispose(group);group.clear();}
-    buildStadium(this.stage,this.rails,{...config,arenaRadius:radius,flatRadius:radius*.60,railRadius,exitAngles:angles,exitHalfWidth:half,ringOutAngles:outer,ringOutHalfWidth:outerHalf});this.fit();
+    buildStadium(this.stage,this.rails,{...config,arenaRadius:radius,flatRadius:radius*.60,railRadius,exitAngles:angles,exitHalfWidth:half,ringOutAngles:outer,ringOutHalfWidths:outerWidths});this.fit();
   }
 
   makeTop(player,index) {
@@ -100,9 +104,9 @@ export class Arena {
     const glow=new THREE.Mesh(new THREE.PlaneGeometry(1.8,1.8),new THREE.MeshBasicMaterial({map:this.glowTexture,color,transparent:true,opacity:.28,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));glow.rotation.x=-Math.PI/2;glow.position.y=.015;group.add(glow);
     const spinHalo=new THREE.Mesh(new THREE.TorusGeometry(.43,.012,5,48),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.32,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));spinHalo.rotation.x=Math.PI/2;spinHalo.position.y=.68+bladeShift;rotor.add(spinHalo);
     const contact=new THREE.Group();
-    const pad=new THREE.Mesh(new THREE.CircleGeometry(.20,16),new THREE.MeshBasicMaterial({color:0xffcf70,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));pad.rotation.x=-Math.PI/2;contact.add(pad);
+    const pad=new THREE.Mesh(new THREE.CircleGeometry(.20,16),new THREE.MeshBasicMaterial({color,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));pad.rotation.x=-Math.PI/2;contact.add(pad);
     const sparks=[];const sparkGeometry=new THREE.BoxGeometry(.10,.025,.035);
-    for(let i=0;i<3;i++){const spark=new THREE.Mesh(sparkGeometry,new THREE.MeshBasicMaterial({color:i===0?0xffffff:0xffcf70,transparent:true,opacity:0}));contact.add(spark);sparks.push(spark);}
+    for(let i=0;i<3;i++){const spark=new THREE.Mesh(sparkGeometry,new THREE.MeshBasicMaterial({color:i===0?0xffffff:color,transparent:true,opacity:0}));contact.add(spark);sparks.push(spark);}
     contact.visible=false;this.scene.add(contact);
     const materials=[];group.traverse(o=>{if(o.isMesh||o.isSprite){o.material.transparent=true;materials.push({material:o.material,opacity:o.material.opacity});}});
     group.visible=false;this.scene.add(group);this.tops.set(player.id,{group,pose,rotor,support,label,trail,glow,spinHalo,spinBlur,blurMaterials,bladeMaterials,materials,index,contact,pad,sparks,signature:JSON.stringify([player.parts,player.color,player.name]),railBurst:null,history:[],lastTrail:-Infinity,outAt:null,recoil:null,spin:0});return this.tops.get(player.id);
@@ -156,14 +160,18 @@ export class Arena {
     for(const item of this.tops.values()){item.pose.quaternion.identity();item.rotor.rotation.set(0,0,0);}
   }
   makeEffects(){
-    this.effects=[];
-    const flashGeometry=new THREE.RingGeometry(.17,.235,48),coreGeometry=new THREE.CircleGeometry(.18,24),shardGeometry=new THREE.BoxGeometry(.13,.025,.035);
+    this.effects=[];this.sparkTransform=new THREE.Object3D();this.sparkDirection=new THREE.Vector3();this.sparkAxis=new THREE.Vector3(1,0,0);
+    this.sparkColor=new THREE.Color();
+    const flashGeometry=new THREE.RingGeometry(.17,.235,48),coreGeometry=new THREE.CircleGeometry(.18,24),shardGeometry=new THREE.PlaneGeometry(1,1);
     for(let i=0;i<EFFECT_LIMIT;i++){
-      const group=new THREE.Group(),flash=new THREE.Mesh(flashGeometry,new THREE.MeshBasicMaterial({color:0xffcf70,transparent:true,depthWrite:false,side:THREE.DoubleSide}));flash.rotation.x=-Math.PI/2;
-      const core=new THREE.Mesh(coreGeometry,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,depthWrite:false,side:THREE.DoubleSide}));core.rotation.x=-Math.PI/2;core.position.y=.01;const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:this.glowTexture,color:0xcfffff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));glow.scale.set(2,2,1);group.add(flash,core,glow);
-      const shards=[];
-      for(let j=0;j<12;j++){const mesh=new THREE.Mesh(shardGeometry,new THREE.MeshBasicMaterial({color:j%2?0xffcf70:0xffffff,transparent:true,depthWrite:false}));group.add(mesh);shards.push(mesh);}
-      group.visible=false;this.scene.add(group);this.effects.push({group,flash,core,glow,shards,born:-Infinity,strength:0,nx:1,nz:0});
+      const group=new THREE.Group(),flash=new THREE.Mesh(flashGeometry,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,depthWrite:false,side:THREE.DoubleSide,forceSinglePass:true}));flash.rotation.x=-Math.PI/2;
+      const core=new THREE.Mesh(coreGeometry,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,depthWrite:false,side:THREE.DoubleSide,forceSinglePass:true}));core.rotation.x=-Math.PI/2;core.position.y=.01;const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:this.glowTexture,color:0xffffff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));glow.scale.set(2,2,1);group.add(flash,core,glow);
+      const shards=new THREE.InstancedMesh(shardGeometry,createCollisionSparkMaterial(),SPARK_CAPACITY);
+      for(let j=0;j<SPARK_CAPACITY;j++)shards.setColorAt(j,this.sparkColor.set(0xffffff));
+      const sparkGlow=new THREE.InstancedMesh(shardGeometry,createCollisionSparkMaterial(true),SPARK_CAPACITY);
+      sparkGlow.name='collision-spark-glow';sparkGlow.instanceMatrix=shards.instanceMatrix;sparkGlow.instanceColor=shards.instanceColor;sparkGlow.frustumCulled=false;sparkGlow.count=0;sparkGlow.renderOrder=1;shards.renderOrder=2;group.add(sparkGlow);
+      shards.name='collision-sparks';shards.frustumCulled=false;shards.instanceMatrix.setUsage(THREE.DynamicDrawUsage);shards.count=0;group.add(shards);
+      group.visible=false;this.scene.add(group);this.effects.push({group,flash,core,glow,shards,sparkGlow,colors:[new THREE.Color(),new THREE.Color()],burst:createSparkBurst(),born:-Infinity,strength:0,nx:1,nz:0});
     }
   }
   impact(event,notify=true){
@@ -172,7 +180,11 @@ export class Arena {
     let effect=this.effects.find(e=>!e.group.visible);
     if(!effect)effect=this.effects.reduce((a,b)=>a.born<b.born?a:b);
     effect.born=this.clock;effect.strength=strength;effect.nx=Number.isFinite(event.nx)?event.nx:1;effect.nz=Number.isFinite(event.nz)?event.nz:0;
-    effect.group.position.set(event.x,(Number.isFinite(event.y)?event.y:this.surfaceY(event.x,event.z))+.48,event.z);effect.group.visible=true;
+    const floor=sparkFloorHeight(event.x,event.z,this.arenaRadius,this.pocketFloor)??this.surfaceY(event.x,event.z);
+    const contactHeight=(event.type==='land'||event.type==='pocket-impact')?.06:.48;
+    effect.group.position.set(event.x,Math.max(floor+SPARK_CLEARANCE,(Number.isFinite(event.y)?event.y:floor)+contactHeight),event.z);effect.group.visible=true;
+    sparkColorsForEvent(event,this.players).forEach((color,i)=>effect.colors[i].set(color));
+    resetSparkBurst(effect.burst,event,effect.group.position,strength);effect.shards.count=this.reduced?0:effect.burst.count;
     if(!this.reduced&&Number.isFinite(event.nx)&&Number.isFinite(event.nz)){
       const contacts=event.type==='rail-bounce'?[[event.id,-1]]:[[event.aId,-1],[event.bId,1]];
       for(const [id,sign] of contacts){const item=this.tops.get(id);if(item)item.recoil={born:this.clock,x:event.nx*sign,z:event.nz*sign,strength};}
@@ -196,7 +208,7 @@ export class Arena {
     const length=Math.hypot(top.x,top.z)||1,nx=top.x/length,nz=top.z/length,dir=top.railDir||1;
     item.contact.position.set(nx*.38,RAIL_CONTACT_HEIGHT-item.support.tipY,nz*.38)
       .applyQuaternion(item.pose.quaternion).add(item.group.position);
-    if(!this.railLightActive){this.contactLight.position.copy(item.contact.position);this.contactLight.position.y+=.12;this.contactLight.intensity=this.reduced?.45:3.8;this.railLightActive=true;}
+    if(!this.railLightActive){this.contactLight.color.copy(item.pad.material.color);this.contactLight.position.copy(item.contact.position);this.contactLight.position.y+=.12;this.contactLight.intensity=this.reduced?.45:3.8;this.railLightActive=true;}
     item.pad.material.opacity=(active?.32:0)+flare*.3;item.pad.scale.setScalar(this.reduced?1:1+flare*.5);
     for(let i=0;i<item.sparks.length;i++){
       const spark=item.sparks[i];spark.visible=!this.reduced&&active;
@@ -231,21 +243,34 @@ export class Arena {
     this.impactLight.intensity=0;
     for(const effect of this.effects){
       if(!effect.group.visible)continue;
-      const age=this.clock-effect.born,duration=.18+effect.strength*.16;
-      if(age>duration){effect.group.visible=false;continue;}
+      const age=Math.max(0,this.clock-effect.born),flashDuration=.18+effect.strength*.16;
+      if(age>(this.reduced?flashDuration:effect.burst.duration)){effect.group.visible=false;continue;}
       const light=Math.max(0,1-age/.14)*(this.reduced?.7:12)*effect.strength;
       if(light>this.impactLight.intensity){this.impactLight.position.copy(effect.group.position);this.impactLight.position.y+=.2;this.impactLight.intensity=light;}
-      const fade=1-age/duration,scale=this.reduced?1:1+age*(4+effect.strength*8);
-      effect.glow.material.opacity=this.reduced?0:Math.max(0,1-age/.19)*(.55+effect.strength*.4);effect.glow.scale.setScalar(.6+effect.strength*1.4+age*3);
-      effect.flash.scale.setScalar(scale);effect.flash.material.opacity=fade*(.6+effect.strength*.35);
-      effect.core.scale.setScalar(.7+effect.strength);effect.core.material.opacity=Math.max(0,1-age/.11)*.9;
-      effect.shards.forEach((mesh,i)=>{
-        mesh.visible=!this.reduced;if(this.reduced)return;
-        const angle=Math.atan2(effect.nz,effect.nx)+(i%2?Math.PI:0)+(Math.floor(i/2)-1.5)*.45;
-        const speed=(2+effect.strength*5)*(1-(i%3)*.13),distance=age*speed;
-        mesh.position.set(Math.cos(angle)*distance,age*1.8-age*age*7,Math.sin(angle)*distance);
-        mesh.rotation.y=-angle;mesh.scale.set(1+effect.strength*1.8,1,1);mesh.material.opacity=fade;
-      });
+      const fade=Math.max(0,1-age/flashDuration),scale=this.reduced?1:1+age*(4+effect.strength*8);
+      effect.glow.visible=!this.reduced&&age<.19;effect.glow.material.opacity=Math.max(0,1-age/.19)*(.3+effect.strength*.25);effect.glow.scale.setScalar(.4+effect.strength*.7+age*1.2);
+      effect.flash.visible=this.reduced?fade>0:age<.10;effect.flash.scale.setScalar(scale);effect.flash.material.opacity=this.reduced?fade*.5:Math.max(0,1-age/.10)*.3;
+      effect.core.visible=age<.11;effect.core.scale.setScalar(.7+effect.strength);effect.core.material.opacity=Math.max(0,1-age/.11)*.9;
+      effect.shards.visible=effect.sparkGlow.visible=!this.reduced;effect.sparkGlow.count=effect.shards.count;if(this.reduced)continue;
+      advanceSparkBurst(effect.burst,age,this.arenaRadius,this.pocketFloor);
+      for(let i=0;i<effect.burst.count;i++){
+        const p=effect.burst.particles[i],remaining=Math.max(0,1-age/p.life),speed=Math.hypot(p.vx,p.vy,p.vz);
+        const transform=this.sparkTransform;
+        transform.position.set(p.x-effect.group.position.x,p.y-effect.group.position.y,p.z-effect.group.position.z);
+        this.sparkDirection.set(p.vx,p.vy,p.vz).normalize();
+        if(speed>.01)transform.quaternion.setFromUnitVectors(this.sparkAxis,this.sparkDirection);else {this.sparkDirection.set(1,0,0);transform.quaternion.identity();}
+        const size=p.active?Math.min(1,remaining*3):0;
+        // A velocity-aligned streak contracts into a small ember after its damped floor bounce.
+        const floor=sparkFloorHeight(p.x,p.z,this.arenaRadius,this.pocketFloor);
+        const gradient=Math.hypot(p.x,p.z)<=this.arenaRadius?surfaceGradient(p.x,p.z,this.arenaRadius):{x:((sparkFloorHeight(p.x+.002,p.z,this.arenaRadius,this.pocketFloor)??floor)-(sparkFloorHeight(p.x-.002,p.z,this.arenaRadius,this.pocketFloor)??floor))/.004,z:((sparkFloorHeight(p.x,p.z+.002,this.arenaRadius,this.pocketFloor)??floor)-(sparkFloorHeight(p.x,p.z-.002,this.arenaRadius,this.pocketFloor)??floor))/.004};
+        const clearance=floor===null?1:Math.max(0,p.y-floor-.014*Math.hypot(gradient.x,1,gradient.z));
+        const crossing=this.sparkDirection.y-gradient.x*this.sparkDirection.x-gradient.z*this.sparkDirection.z;
+        const length=Math.min(.08+speed*.035,.34,clearance*2/Math.max(.01,Math.abs(crossing)));
+        transform.scale.set(length*size,p.width*.06*size,p.width*.06*size);transform.updateMatrix();effect.shards.setMatrixAt(i,transform.matrix);
+        this.sparkColor.copy(effect.colors[p.color]).multiplyScalar(.55+.45*remaining);effect.shards.setColorAt(i,this.sparkColor);
+      }
+      effect.sparkGlow.material.uniforms.opacity.value=effect.shards.material.uniforms.opacity.value=Math.min(1,Math.max(0,1-age/effect.burst.duration)*2.5);
+      effect.shards.instanceMatrix.needsUpdate=true;if(effect.shards.instanceColor)effect.shards.instanceColor.needsUpdate=true;
     }
   }
   loop(){
@@ -338,9 +363,10 @@ export class Arena {
     // The static bank lean fades during takeoff and through the crest. Spin
     // is local to the tip, so turning the blade cannot rotate the downhill axis.
     const contact=1-THREE.MathUtils.smoothstep(y-floor,0,.24);
-    const slope=inBowl?surfaceSlope(x,z,rim):0;
+    const gradient=inBowl?surfaceGradient(x,z,rim):{x:0,z:0};
+    const slope=Math.hypot(gradient.x,gradient.z);
     const bankLean=Math.min(.21,.24*Math.atan(slope))*contact*THREE.MathUtils.smoothstep(rim-radius,0,.12);
-    this.bankAxis.set(-z/(radius||1),0,x/(radius||1));
+    this.bankAxis.set(-gradient.z/(slope||1),0,gradient.x/(slope||1));
     item.pose.quaternion.setFromAxisAngle(this.bankAxis,bankLean);
     item.pose.quaternion.multiply(this.rockRotation.setFromEuler(this.rockEuler.set(leanX,0,leanZ)));
     const skin=inBowl?bowlSkinY(x,z,rim):floor;

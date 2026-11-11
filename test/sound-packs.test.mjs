@@ -1,0 +1,6 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const root=new URL('../public/assets/sound-packs/',import.meta.url);
+const manifest=JSON.parse(fs.readFileSync(new URL('manifest.json',root),'utf8'));
+test('three distinct complete original sound packs and honest voice labeling',()=>{assert.equal(manifest.packs.length,3);assert.equal(manifest.cues.length,19);assert.match(manifest.voice.quality,/TTS/);assert.equal(manifest.spin.threshold,.55);const hashes=new Set();for(const pack of manifest.packs)for(const cue of manifest.cues){const b=fs.readFileSync(new URL(`${pack.id}/${cue.id}.wav`,root));assert.equal(b.toString('ascii',0,4),'RIFF');assert.equal(b.toString('ascii',8,12),'WAVE');assert.equal(b.readUInt32LE(24),44100);assert.equal(b.readUInt16LE(22),1);assert.equal(b.readUInt16LE(34),16);assert.equal(b.readUInt32LE(40),b.length-44);let square=0,peak=0;for(let i=44;i<b.length;i+=2){const x=b.readInt16LE(i)/32768;peak=Math.max(peak,Math.abs(x));square+=x*x;}assert.ok(peak>.01&&peak<.83,`${pack.id}/${cue.id} peak ${peak}`);assert.ok(Math.sqrt(square/((b.length-44)/2))>.01);if(cue.id==='spin_loop'){assert.equal(b.length,44+44100*4*2);assert.ok(Math.abs(b.readInt16LE(44)-b.readInt16LE(b.length-2))<=1);}hashes.add(b.toString('base64'));}assert.equal(hashes.size,57);});

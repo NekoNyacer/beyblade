@@ -1,0 +1,427 @@
+/* The handset uses the same brushed frame, instrument faces and controls as the broadcast desk. */
+.handset-page {
+  --deck: radial-gradient(ellipse at 50% 100%, #23364670, transparent 65%),
+    repeating-linear-gradient(125deg, transparent 0 3px, #2638480a 3px 4px),
+    linear-gradient(145deg, #14212c, #080f15 60%, #101c24);
+  background: radial-gradient(ellipse at 50% 18%, #1b2834, #070b10 75%);
+  color: var(--bc-ink);
+}
+.handset-page::before, .handset-page::after { content: none; }
+.handset-page:not(.launch-mode) > main,
+.handset-page.portrait-preparation:not(.preparation-landscape) > main {
+  width: calc(100% - 12px);
+  max-width: 465px;
+  min-height: calc(100svh - 12px);
+  margin: 6px auto;
+  padding: max(10px, env(safe-area-inset-top)) 13px max(12px, env(safe-area-inset-bottom));
+  border: 4px solid transparent;
+  background: linear-gradient(150deg, #101b23, #080e14 56%, #111d26) padding-box,
+    var(--bc-rim) border-box;
+}
+.handset-page header {
+  min-height: 35px;
+  padding-bottom: 8px;
+  margin: 0 0 11px;
+  border-bottom: 1px solid #324250;
+}
+.handset-page .broadcast-brand { font-size: 22px; }
+.handset-page footer { min-height: 30px; padding-top: 8px; color: var(--bc-muted); }
+.handset-page section { padding-bottom: 12px; }
+.handset-page .title-ribbon,
+body.handset-page #assembly .title-ribbon,
+.handset-page .launch-heading .title-ribbon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: fit-content;
+  min-height: 0;
+  margin: 0;
+  padding: 7px 22px 8px 14px;
+  gap: 9px;
+  border-bottom: 1px solid #bd3449;
+  background: linear-gradient(110deg, #ae0c24, #661526 68%, #50152324);
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  font-size: clamp(18px, 4.8vw, 23px);
+  line-height: 1.1;
+  transform: none;
+  text-shadow: 0 1px 2px #16080a;
+}
+.handset-page .title-ribbon::after { content: none; }
+.handset-page .title-ribbon > span { white-space: nowrap; }
+.handset-page #join-panel #join-title { font-size: clamp(18px,4.8vw,23px); }
+.handset-page .title-ribbon small, .handset-page #assembly .title-ribbon small,
+.handset-page .launch-heading i {
+  color: #f3c9cd;
+  font: italic 900 14px/1 var(--bc-display);
+  letter-spacing: .045em;
+}
+.handset-page .join-hero, .handset-page.portrait-preparation .join-hero {
+  position: relative;
+  height: clamp(185px, 39svh, 330px);
+  margin: 0 0 18px;
+  overflow: hidden;
+  border: 1px solid var(--bc-line);
+  border-radius: 4px;
+  background: var(--deck);
+}
+.handset-page .join-hero h1 {
+  position: absolute;
+  top: 14px;
+  left: 10px;
+  z-index: 2;
+}
+.handset-page .hero-art {
+  position: absolute;
+  inset: 32px 5% 0;
+  display: grid;
+  place-items: center;
+}
+.handset-page .hero-art::before, .handset-page .mounted-preview::before {
+  content: "";
+  position: absolute;
+  inset: auto 7% 8%;
+  height: 19%;
+  transform: skew(-16deg);
+  border: 1px solid #60718067;
+  border-bottom-color: #96a4b48c;
+  background: linear-gradient(168deg, #263642, #121e28 60%, #31414c);
+  box-shadow: 0 7px 8px #0007;
+}
+.handset-page .hero-art img {
+  position: relative;
+  inset: auto;
+  width: 140%;
+  height: 140%;
+  min-height: 0;
+  object-fit: contain;
+  filter: drop-shadow(0 9px 9px #0009);
+}
+.handset-page #join-form label { display: block; margin-bottom: 10px; font-size: 23px; font-style: italic; font-weight: 900; }
+.handset-page #name {
+  height: 48px;
+  padding: 0 12px;
+  border: 1px solid #5c7285;
+  border-radius: 4px;
+  background: #0a121a;
+  color: #fff;
+  font-size: 16px;
+  caret-color: #fff;
+  box-shadow: inset 0 2px 5px #0009;
+}
+.handset-page #name::placeholder { color: #93a3b4; font-style: normal; font-weight: 450; }
+.handset-page .primary, body.handset-page #confirm-parts, .handset-page .launch-gate-content button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  margin: 14px 0 0;
+  padding: 8px 14px;
+  border: 1px solid #68bb79;
+  border-radius: 4px;
+  clip-path: none;
+  background: var(--bc-confirm);
+  color: white;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 850;
+  font-style: normal;
+  line-height: 1.35;
+  text-shadow: 0 1px 2px #072f12;
+  filter: none;
+  box-shadow: inset 0 1px #a6ed9d45, 0 3px 6px #0004;
+}
+.handset-page .primary::before, .handset-page .primary::after { content: none; }
+.handset-page .button-icon { width: 18px; height: 18px; stroke-width: 3px; }
+.handset-page .secondary, .handset-page .part-selector button {
+  color: #f0f4fa;
+  border: 1px solid #486071;
+  border-radius: 4px;
+  background: var(--bc-button);
+  box-shadow: inset 0 1px #e8f0ff0d;
+}
+.handset-page #assembly { padding: 0 0 10px; }
+.handset-page #assembly .assembly-tools {
+  margin: 0 0 9px;
+  gap: 6px;
+}
+.handset-page #assembly #random-parts {
+  position: static;
+  min-height: 40px;
+  padding: 5px 8px;
+  white-space: nowrap;
+}
+body.handset-page #part-rows { display: grid; grid-template-columns: minmax(0,1fr); gap: 6px; }
+.handset-page .part-row, .handset-page.portrait-preparation .part-row {
+  height: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 7px 8px;
+  border: 1px solid #354b5a;
+  border-radius: 4px;
+  background: var(--bc-panel);
+  clip-path: none;
+}
+.handset-page .part-row::before { content: none; }
+.handset-page .part-row h2 { margin: 0; font-size: 13px; }
+.handset-page .part-row h2 small { color: #9eb1c1; font-size: 13px; }
+.handset-page .part-row output, .handset-page.portrait-preparation .part-row output {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: #d4e0eb;
+  font-size: 11px;
+}
+body.handset-page #assembly .part-selector {
+  height: 60px;
+  grid-template-columns: 42px minmax(0,1fr) 42px;
+  gap: 4px;
+  margin: 1px 0;
+}
+.handset-page .part-selector button { width: 42px; height: 44px; min-height: 44px; clip-path: none; }
+.handset-page .part-selector button svg { width: 12px; height: 19px; }
+body.handset-page #assembly .part-view { height: 60px; margin: 0; }
+.handset-page #assembly .part-view::before {
+  inset: 0 auto;
+  left: 50%;
+  width: 70px;
+  border-bottom: 1px solid #d92d48;
+  background: linear-gradient(0deg,#d525411c,transparent 80%);
+  clip-path: none;
+  filter: none;
+}
+.handset-page .part-view::after { content: none; }
+.handset-page .part-description, .handset-page.portrait-preparation .part-description {
+  position: static;
+  margin: 2px 0 0;
+  color: #b9c7d2;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.handset-page .combination {
+  display: grid;
+  grid-template-columns: 54% minmax(0,1fr);
+  gap: 3px;
+  min-height: 82px;
+  margin: 8px 0 0;
+  padding: 2px 8px 2px 3px;
+  overflow: hidden;
+  border: 1px solid var(--bc-line);
+  border-radius: 4px;
+  clip-path: none;
+  background: var(--deck);
+}
+.handset-page .combination::before { content: none; }
+.handset-page .mounted-preview { position: relative; width: 100%; aspect-ratio: 2.1; }
+.handset-page .mounted-preview::before { inset: auto 4% 3%; height: 11%; }
+.handset-page .mounted-preview img { position: absolute; top: 51%; transform: translateY(-50%); }
+.handset-page .mounted-housing { width: 42%; left: 31%; }
+.handset-page .mounted-rack { left: 2%; width: 48%; height: 5%; filter: var(--red-nylon); }
+.handset-page .mounted-grip { left: 67%; width: 29%; filter: var(--red-nylon); }
+.handset-page #combination-preview {
+  position: absolute;
+  top: 66%;
+  left: 36.5%;
+  width: 38%;
+  height: auto;
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  color: #c6d4df;
+  font-size: 10px;
+}
+.handset-page .combination h2 {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 3px 5px;
+  min-height: auto;
+  padding: 0;
+  margin: 0 0 4px;
+  background: none;
+  clip-path: none;
+  transform: none;
+  font-size: 14px;
+}
+.handset-page .combination h2 small { color: #adbcc9; font-size: 12px; }
+.handset-page .combination output { gap: 2px 8px; font-size: 11px; color: #b7c7d2; }
+.handset-page .combination output b { color: #f4f7fb; }
+body.handset-page #confirm-parts { margin-top: 9px; }
+.handset-page .parts-note { margin-top: 5px; }
+.handset-page.launch-mode > main { margin: 0; padding: 0; border: 0; }
+.handset-page #launcher-screen {
+  inset: max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right))
+    max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));
+  border: 4px solid transparent;
+  border-radius: 9px;
+  background: linear-gradient(#101b24,#080e15) padding-box, var(--bc-rim) border-box;
+}
+.handset-page #launcher-screen::before, .handset-page #launcher-screen::after { content: none; }
+.handset-page .ripcord-horizontal {
+  background: radial-gradient(ellipse at 42% 56%, #45607560, transparent 47%), var(--deck);
+}
+.handset-page .ripcord-horizontal::before {
+  content: "";
+  position: absolute;
+  left: 17%;
+  right: 16%;
+  top: 76%;
+  height: 12%;
+  background: radial-gradient(ellipse, #0204068f, transparent 66%);
+  pointer-events: none;
+}
+.handset-page .launch-heading {
+  top: 9px;
+  left: 12px;
+  right: 12px;
+  width: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  pointer-events: none;
+}
+.handset-page .launch-heading .broadcast-brand { font-size: 19px; }
+.handset-page .launch-instruction {
+  bottom: 8px;
+  left: auto;
+  right: 12px;
+  width: auto;
+  max-width: 48%;
+  text-align: right;
+  pointer-events: none;
+}
+.handset-page .launch-instruction strong {
+  display: inline-flex;
+  gap: 8px;
+  min-height: 31px;
+  padding: 5px 12px;
+  border: 1px solid #617787;
+  border-radius: 3px;
+  background: var(--bc-button);
+  clip-path: none;
+  font-size: 15px;
+}
+.handset-page .launch-instruction strong::before { content: none; }
+.handset-page .launch-instruction b { font-size: 21px; }
+.handset-page .ripcord.active ~ .launch-instruction strong {
+  background: var(--bc-confirm);
+  border-color: #5fb377;
+}
+.handset-page .launch-instruction small { margin-top: 3px; font-size: 11px; }
+.handset-page #launch-cue { top: 12%; color: #fff; }
+.handset-page #handle:focus-visible { outline: 0; }
+.handset-page #handle:focus-visible img {
+  filter: var(--red-nylon) drop-shadow(0 0 2px #fff) drop-shadow(0 0 3px #f6e4a1);
+}
+@media (forced-colors: active) {
+  .handset-page #handle:focus-visible { outline: 3px solid Highlight; }
+}
+.handset-page .gate-brand { display: none; }
+.handset-page:has(.launch-screen-gate:not([hidden])) .gate-brand {
+  display: block;
+  position: fixed;
+  z-index: 10001;
+  top: max(16px,env(safe-area-inset-top));
+  left: max(16px,env(safe-area-inset-left));
+  pointer-events: none;
+}
+.handset-page .launch-screen-gate, .handset-page .rotate-phone {
+  background: var(--deck);
+  color: var(--bc-ink);
+}
+.handset-page .launch-gate-content {
+  width: min(100%, 408px);
+  padding: 25px 22px;
+  border: 4px solid transparent;
+  border-radius: 9px;
+  background: var(--bc-panel) padding-box, var(--bc-rim) border-box;
+  box-shadow: 0 8px 30px #0007, inset 0 0 0 1px #0009;
+}
+.handset-page .launch-gate-content > svg { stroke: #e3ebf1; height: 54px; margin-bottom: 3px; }
+.handset-page .launch-gate-content h2 { margin-bottom: 8px; font-size: 24px; font-style: italic; }
+.handset-page .launch-gate-content p { margin: 0 0 10px; font-size: 14px; }
+.handset-page .launch-gate-content small { margin-top: 12px; font-size: 12px; }
+.handset-page .launch-gate-content .launch-gate-error { margin-top: 10px; color: #ffc5cf; }
+@media (min-width: 650px) and (orientation: landscape) {
+  body.handset-page.desktop-preparation:not(.launch-mode):has(#join-panel) > main {
+    max-width: 840px;
+    width: calc(100% - 24px);
+    min-height: min(95svh,560px);
+    margin: max(8px,calc((100svh - 560px) / 2)) auto;
+    padding: 11px 15px;
+    border: 4px solid transparent;
+  }
+  .handset-page.desktop-preparation #join-panel {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,.88fr);
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+  }
+  .handset-page.desktop-preparation #join-panel .join-hero {
+    grid-area: 1 / 1;
+    height: clamp(200px,58svh,330px);
+    margin: 0;
+  }
+  .handset-page.desktop-preparation #join-panel #join-form { grid-area: 1 / 2; }
+  .handset-page.desktop-preparation #join-error { grid-column: 1 / -1; }
+  .handset-page .assembly-stage {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+    gap: 12px;
+  }
+  .handset-page .assembly-finish { display: flex; flex-direction: column; }
+  .handset-page .assembly-finish .combination {
+    flex: 1;
+    grid-template-columns: minmax(0,1fr);
+    align-content: center;
+    padding: 10px;
+    margin: 0;
+  }
+  .handset-page .combination-info { padding: 4px; }
+}
+@media (max-width: 360px) {
+  .handset-page #assembly .title-ribbon small { display: none; }
+}
+@media (min-width: 650px) and (max-height: 520px) and (orientation: landscape) {
+  body.handset-page.desktop-preparation:not(.launch-mode):has(#join-panel) > main {
+    width: calc(100% - 12px);
+    min-height: calc(100svh - 12px);
+    margin: 6px auto;
+    padding: 7px 10px;
+  }
+  .handset-page.desktop-preparation .part-row {
+    display: grid;
+    grid-template-columns: minmax(116px,.86fr) minmax(0,1.14fr);
+    column-gap: 5px;
+    align-content: center;
+    min-height: 75px;
+    padding: 4px 6px;
+  }
+  .handset-page.desktop-preparation .part-row h2,
+  .handset-page.desktop-preparation .part-row output,
+  .handset-page.desktop-preparation .part-description { grid-column: 1; text-align: left; }
+  .handset-page.desktop-preparation .part-row output { position: static; grid-row: 2; }
+  .handset-page.desktop-preparation .part-description { grid-row: 3; line-height: 1.3; }
+  body.handset-page.desktop-preparation #assembly .part-selector {
+    grid-column: 2;
+    grid-row: 1 / 4;
+    align-self: center;
+    gap: 2px;
+    grid-template-columns: 33px minmax(0,1fr) 33px;
+  }
+  .handset-page.desktop-preparation .part-selector button { width: 33px; }
+  .handset-page.desktop-preparation .mounted-preview { max-width: 262px; margin: auto; }
+}
+@media (max-height: 450px) and (orientation: landscape) {
+  .handset-page .gate-brand .broadcast-brand { font-size: 16px; }
+  .handset-page .launch-gate-content { padding: 10px 18px; }
+  .handset-page .launch-gate-content > svg { height: 32px; margin: 0; }
+  .handset-page .launch-gate-content h2 { font-size: 20px; }
+  .handset-page .launch-gate-content button { margin-top: 5px; }
+  .handset-page .launch-gate-content small { margin-top: 5px; }
+}
+@media (max-height: 340px) {
+  .handset-page:has(.launch-screen-gate:not([hidden])) .gate-brand { display: none; }
+}

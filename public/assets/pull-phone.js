@@ -1,3 +1,4 @@
+import {setLauncherKit,sizeWinder} from './launcher.js';
 import {FlexibleRipcord} from './flexible-ripcord.js';
 import {LaunchScreenGate} from './launch-screen.js';
 import {LauncherPreview} from './parts.js';
@@ -5,12 +6,12 @@ import {appendRipcordEvent} from './ripcord.js';
 import {measurePracticePull} from './pull-input.js';
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),session=params.get('session'),token=params.get('token');
 const valid=!!session&&!!token;let online=false,locked=false,gesture=null,stroke=1,timer;
-const preview=new LauncherPreview($('loaded-top'));preview.set({blade:0,ratchet:0,bit:0},'#ef243d');
+const preview=new LauncherPreview($('loaded-top'));preview.set({blade:0,ratchet:0,bit:0},'#ff486a');setLauncherKit($('ripcord'),'#ff486a');
 const cord=new FlexibleRipcord($('ripcord'));
 const gate=new LaunchScreenGate({onchange:ready=>{if(!ready)cancel();draw();}});
-function canPull(){return valid&&online&&gate.ready&&!locked;}
+function canPull(){return innerWidth>innerHeight&&valid&&online&&gate.ready&&!locked;}
 function draw(){const ready=canPull();$('handle').setAttribute('aria-disabled',String(!ready));$('ripcord').classList.toggle('active',ready);$('launch-readiness-label').textContent=!online?'等待連線':locked?'已發射':ready?'向右抽出':'準備中';$('launch-readiness-code').textContent=!online?'SYNC':locked?'LAUNCHED':ready?'SHOOT':'READY';$('launch-help').textContent=!valid?'請從電腦主畫面的 QR 碼開啟這個手機控制器。':!online?'等待主畫面連線；請保持電腦測試頁開啟。':locked?'陀螺已入場，請看主畫面。':'隨時可拉；拉完自動裝填，請看主畫面。';}
-function size(){const root=$('ripcord'),assembly=root.querySelector('.cord-assembly');stroke=Math.max(1,root.clientWidth-assembly.offsetLeft-assembly.offsetWidth-Math.max(18,root.clientWidth*.045));root.style.setProperty('--stroke',stroke+'px');}
+function size(){stroke=sizeWinder($('ripcord'));}
 function cancel(reset=true){const old=gesture;gesture=null;if(old&&$('handle').hasPointerCapture(old.id))$('handle').releasePointerCapture(old.id);$('ripcord').classList.remove('dragging');if(reset&&!locked){$('ripcord').style.setProperty('--pull','0px');$('ripcord').style.setProperty('--pull-y','0px');}}
 function rearm(){locked=false;$('ripcord').classList.remove('released');$('ripcord').style.setProperty('--pull','0px');$('ripcord').style.setProperty('--pull-y','0px');draw();}
 async function launch(result){

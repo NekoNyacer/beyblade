@@ -20,3 +20,28 @@ test('input changes actual airborne velocities, spin and later physics, repeatab
  for(const run of [slow,fast,up,down])for(const frame of run.frames)for(const top of frame.tops)for(const key of ['x','y','z','vx','vy','vz','angularSpeed'])assert.ok(Number.isFinite(top[key]),key);
 });
 test('malformed and out of range inputs cannot seed physics',()=>{for(const args of [[NaN,0],[.5,Infinity],[-1,0],[.5,26],['.5',0]])assert.throws(()=>launchPractice(...args),RangeError);});
+
+
+test('feel test runs beyond 16 seconds until both tops physically stop',()=>{
+ for(const [power,angle] of [[0,0],[.5,-25],[1,25]]){
+  const run=launchPractice(power,angle),last=run.frames.at(-1);
+  assert.ok(last.t>16&&last.t<120);
+  assert.ok(run.frames.length<=3001);
+  assert.equal(last.done,true);
+  assert.ok(last.tops.every(top=>top.angularSpeed===0&&top.energy===0&&top.vx===0&&top.vz===0&&top.vy===0));
+  assert.ok(run.frames.some(frame=>frame.winnerId&&!frame.done&&frame.tops.some(top=>top.alive&&top.angularSpeed>1)));
+  assert.ok(run.frames.some(frame=>frame.t>16&&frame.tops.some(top=>top.angularSpeed>1)));
+  assert.ok(JSON.stringify(run).length<4000000);
+ }
+});
+
+test('practice standard launch and reference use 7200 RPM; each pull resets the run',()=>{
+ const standard=launchPractice(.5,0,'first',true),measured=launchPractice(.5,0,'second');
+ assert.ok(Math.abs(standard.initial.rpm-7200)<1e-9);
+ assert.ok(standard.frames[0].tops.every(top=>Math.abs(top.angularSpeed*60/(2*Math.PI)-7200)<.001));
+ assert.ok(Math.abs(measured.initial.rpm-85*6*60/(2*Math.PI))<1e-9);
+ assert.equal(measured.frames[0].t,0);assert.equal(measured.frames[0].tick,0);
+ assert.equal(measured.frames[0].roundId,'second');
+ assert.notEqual(standard.frames[0].roundId,measured.frames[0].roundId);
+ assert.ok(measured.frames[0].tops.every(top=>top.alive));
+});

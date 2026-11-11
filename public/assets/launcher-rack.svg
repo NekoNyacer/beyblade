@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 18" fill="none" preserveAspectRatio="none">
+  <style>
+    svg:has(#carbon:target) { --cord-deep:#13181d; --cord-shadow:#252b31; --cord-base:#3b4247; --cord-lit:#5a6268; --cord-edge:#98a1a4; }
+    svg:has(#amber:target) { --cord-deep:#98510c; --cord-shadow:#c78012; --cord-base:#eea91b; --cord-lit:#ffca48; --cord-edge:#ffe697; }
+    svg:has(#smoke:target) { --cord-deep:#3f4a51; --cord-shadow:#6b767b; --cord-base:#949fa1; --cord-lit:#c6d0ce; --cord-edge:#e9efea; }
+  </style>
+  <view id="carbon"/><view id="amber"/><view id="smoke"/>
+  <defs>
+    <linearGradient id="face" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="var(--cord-edge, #fffef1)"/><stop offset=".52" stop-color="var(--cord-lit, #f2f0df)"/><stop offset="1" stop-color="var(--cord-base, #dbdfd3)"/>
+    </linearGradient>
+    <linearGradient id="edge" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="var(--cord-lit, #dae0d5)"/><stop offset="1" stop-color="var(--cord-deep, #aebbb7)"/>
+    </linearGradient>
+    <pattern id="teeth" patternUnits="userSpaceOnUse" x="25" y="1" width="8" height="6">
+      <path d="M0 5.2 3.8 1.5H6l1.2 3.7L8 6H0Z" fill="var(--cord-base, #d2d7cb)"/>
+      <path d="m.5 4.8 3.3-3.3H6l.2 1.1H4.4L2.3 4.8Z" fill="var(--cord-edge, #f8f8e9)"/>
+      <path d="m6 1.5 1.2 3.7H5.9l-.4-2.6Z" fill="var(--cord-shadow, #b3bfb9)"/>
+    </pattern>
+  </defs>
+  <path d="m1 10.6 9-4.8 14-1.3h360v8H23.7L8.1 14.2l-5.4-.9Z" fill="url(#face)"/>
+  <path d="m1 10.6 2.7 1.3 4.9.3 15.3-1.3H384v3.1H25.2L8.1 15.2l-5.9-1.1Z" fill="url(#edge)"/>
+  <path d="M21 5.6h363V.9H29Z" fill="url(#teeth)"/>
+  <path d="m3 9.9 7.3-4 14.3-1.1H384v1.1H24.6L11.1 7Z" fill="var(--cord-edge, #fffef2)"/>
+  <path d="m8.1 14.5 16-1.2H384" stroke="var(--cord-lit, #d7ded4)" stroke-width=".65"/>
+</svg>

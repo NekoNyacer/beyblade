@@ -27,3 +27,280 @@
 .versus-top::before{content:"";position:absolute;left:4%;right:4%;bottom:16%;height:19%;border:1px solid #ff5b6f77;border-radius:50%;transform:rotate(-12deg);box-shadow:0 0 1cqw #ff244520,inset 0 0 1cqw #ff244520;background:radial-gradient(ellipse,#e7263d20,transparent 68%)}
 .versus-blue .versus-top::before{border-color:#50afff88;transform:rotate(12deg);box-shadow:0 0 1cqw #208dff22,inset 0 0 1cqw #208dff22;background:radial-gradient(ellipse,#278cec20,transparent 68%)}
 .versus-top::after{content:"";position:absolute;inset:5% 0;pointer-events:none;background:radial-gradient(circle at 14% 25%,#ffe4c4 0 1px,transparent 2px),radial-gradient(circle at 82% 70%,#ffe4c4 0 1px,transparent 2px),radial-gradient(circle at 21% 76%,#ffbd8a 0 1px,transparent 2px),radial-gradient(circle at 85% 19%,#c4e8ff 0 1px,transparent 2px)}
+
+/* The projection is a single framed screen, including entrances, replays and results. */
+.display-page {
+  --bg:#0a1118; --panel:#14212b; --line:#415260; --muted:#bac5d1; --gold:#e9c566;
+  --frame:clamp(6px,1.2vmin,17px);
+  position:relative; min-width:0; padding:var(--frame);
+  background:linear-gradient(173deg,transparent 12%,#fff3 13%,transparent 14%,transparent 85%,#0008 86%,transparent 91%),var(--bc-rim);
+  border:2px solid #58616c; border-radius:clamp(5px,1vmin,15px);
+  box-shadow:inset 0 2px 2px #f1f5fb,inset 0 -3px 2px #141a21,inset 2px 0 3px #0c1117;
+}
+.projection-screen {
+  position:relative; isolation:isolate; width:100%; height:100%; overflow:hidden; container-type:size;
+  border:1px solid #070a0d; outline:1px solid #69717a;
+  background:linear-gradient(115deg,transparent 17%,#d2e6fa0c 17.15%,transparent 17.8%),
+    linear-gradient(245deg,transparent 16%,#dceaf60c 16.15%,transparent 17%),
+    radial-gradient(ellipse at 50% 55%,#14212b 0,#0b141d 44%,#070b11 76%,#05080d);
+}
+.projection-screen .display-arena, .display-page.battle .projection-screen .display-arena,
+.display-page.many-players .projection-screen .display-arena {
+  inset:2.5% 0 4%; min-width:0;
+  mask-image:radial-gradient(ellipse 68% 85% at 50% 55%,black 58%,#000a 79%,transparent 100%),
+    linear-gradient(180deg,transparent,black 12%,black 96%,transparent);
+  mask-composite:intersect;
+}
+.display-page:not(.battle) .projection-screen .display-arena {inset:10% 6% 9%}
+.projection-screen .display-header {
+  inset:4% 3% auto; align-items:flex-start; gap:12px; padding:0; z-index:3;
+}
+.projection-title {
+  position:relative; display:flex; align-items:center; gap:clamp(6px,1.3cqw,30px);
+  min-width:0; padding:.45cqw 4.5cqw .6cqw 2.2cqw;
+  color:white; font-weight:900; font-style:italic;
+  background:linear-gradient(98deg,#b30e27,#5a0f1ddc 63%,#270a1430);
+  clip-path:polygon(1.4cqw 0,100% 0,calc(100% - 1.4cqw) 100%,0 100%);
+}
+.projection-title::before {
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(112deg,transparent 0 1.2cqw,#ff5165 1.23cqw 1.33cqw,transparent 1.39cqw),
+    linear-gradient(90deg,#ff3b52,transparent 96%) bottom/100% 2px no-repeat;
+}
+.projection-screen .projection-title h1 {margin:0;font-size:clamp(14px,2.65cqw,66px);line-height:1.2;white-space:nowrap}
+.projection-screen .projection-title p {margin:0;font-size:clamp(10px,1.62cqw,40px);line-height:1.2;color:#f9e6e8;white-space:nowrap}
+.projection-screen .display-state {padding-top:.2cqw}
+.display-state #air-label {display:flex;align-items:center;justify-content:flex-end;gap:.65cqw;color:#f6f7f9;font:italic 900 clamp(13px,2.35cqw,60px)/1 var(--bc-display);text-shadow:0 2px 7px #000}
+.display-state #air-label::before {content:"";width:.58em;height:.58em;border-radius:50%;background:#f71636;box-shadow:0 0 .5em #f922405d}
+.display-state .connection {display:block;margin-top:.3em;font-size:clamp(10px,.73cqw,18px);color:#eff1f5}
+.display-state .connection.online {display:none}
+.projection-screen #roster {
+  inset:16% 2% 12% auto; width:24%; gap:clamp(3px,.65cqh,10px);
+}
+.projection-screen #roster.dense {width:36%;grid-template-columns:repeat(2,minmax(0,1fr))}
+.projection-screen .display-player {
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.55cqw;align-items:center;
+  min-height:0;padding:.65cqh .65cqw;border:1px solid #415260;border-left:3px solid var(--player-color);
+  background:linear-gradient(105deg,#1e2c39f7,#0c151df5);border-radius:2px;
+}
+.projection-screen .display-player .player-number {
+  width:1.6em;height:1.4em;font:italic 900 clamp(11px,1.35cqw,30px)/1 var(--bc-display);
+  color:#07111a;border-radius:0;transform:skew(-10deg);
+}
+.projection-screen .display-player .name {font-size:clamp(11px,1.1cqw,26px);line-height:1.3;color:white}
+.projection-screen .display-player .status {grid-column:auto;margin:0;font-size:clamp(10px,.95cqw,24px);line-height:1.2;color:#e1e9f0}
+.projection-screen #roster.dense .name {font-size:clamp(10px,1cqw,22px)}
+.projection-screen #roster.dense .status {font-size:clamp(9px,.85cqw,19px)}
+.projection-screen .display-player.out {opacity:.73}
+.display-page.battle #roster:not(:empty) {
+  display:grid;inset:16% 1.1% 12%;width:auto;align-content:center;justify-content:space-between;
+  grid-auto-flow:column;grid-template-rows:repeat(var(--roster-rows),auto);
+  grid-template-columns:repeat(2,minmax(0,22%));
+}
+.display-page.duel #roster {inset:15% 1.1% auto;grid-template-columns:repeat(2,minmax(0,23%));z-index:1;pointer-events:none}
+.display-page.duel .display-player {
+  --side:#f32a47;--plate:#9c0c24;--accent:#4a0614;--edge:#ff5869;
+  --cut:clamp(5px,1.1cqw,24px);
+  position:relative;isolation:isolate;
+  grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto auto;align-content:center;
+  gap:0 .75cqw;padding:1.05cqw 1.65cqw 1.7cqw;min-height:clamp(65px,17cqh,260px);
+  border:0;border-radius:0;color:#fff;
+  clip-path:polygon(var(--cut) 0,100% 0,100% 100%,var(--cut) 100%,0 calc(100% - var(--cut)),0 var(--cut));
+  background:linear-gradient(108deg,var(--plate),var(--accent) 59%,#10151cdc);
+  box-shadow:inset 0 2px color-mix(in srgb,var(--side) 82%,transparent),inset 0 -2px #c0cbd8,inset 2px 0 var(--side);
+}
+.display-page.duel .display-player:nth-child(2) {
+  --side:#168aff;--plate:#0759a8;--accent:#071e3b;--edge:#72c9ff;
+  clip-path:polygon(0 0,calc(100% - var(--cut)) 0,100% var(--cut),100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%);
+  background:linear-gradient(252deg,var(--plate),var(--accent) 59%,#10151cdc);
+  box-shadow:inset 0 2px #198bffa8,inset 0 -2px #c0cbd8,inset -2px 0 var(--side);
+}
+.display-page.duel .display-player::before {
+  content:"";position:absolute;z-index:-1;inset:0 0 auto;height:30%;
+  background:linear-gradient(110deg,color-mix(in srgb,var(--side) 82%,transparent),transparent 78%);
+}
+.display-page.duel .display-player:nth-child(2)::before {background:linear-gradient(250deg,#1077cce6,transparent 78%)}
+.display-page.duel .display-player::after {
+  content:"";position:absolute;inset:auto 0 0;height:9%;min-height:4px;
+  background:linear-gradient(110deg,var(--side) 8%,var(--edge) 10%,#434e59 14%,#b2bcc5 22%,#56606b 38%,#17222e 74%);
+  clip-path:polygon(0 0,18% 0,23% 60%,94% 60%,100% 0,100% 100%,0 100%);
+}
+.display-page.duel .display-player:nth-child(2)::after {transform:scaleX(-1)}
+.display-page.duel .score-identity {grid-column:1/-1;display:flex;align-items:center;gap:.7cqw;min-width:0}
+.display-page.duel .display-player:nth-child(2) .score-identity {justify-content:flex-end}
+.display-page.duel .display-player .player-number {
+  grid-row:1;grid-column:1;width:auto;height:auto;padding:.06em .5em;
+  color:white;background:var(--side);font-size:clamp(14px,2.05cqw,50px);
+}
+.display-page.duel .display-player .name {
+  grid-row:1;grid-column:2;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+  overflow:hidden;white-space:normal;overflow-wrap:anywhere;
+  flex:0 1 auto;font-weight:800;font-size:clamp(11px,1.3cqw,33px);line-height:1.17;text-shadow:0 1px 3px #15181b;
+}
+.display-page.duel .display-player .status {
+  grid-column:1/-1;grid-row:2;display:flex;gap:.7cqw;align-items:baseline;min-width:0;
+  margin:.5cqw 0 .1cqw;color:#fff;font:italic 900 clamp(40px,7.2cqw,190px)/.98 var(--bc-display);
+  text-shadow:0 .06em .08em #080d1466;letter-spacing:-.015em;font-variant-numeric:tabular-nums;
+}
+.display-page.duel .rpm-value {font:inherit;letter-spacing:-.02em}
+.display-page.duel .status small {font-size:.27em;letter-spacing:.07em;color:#dce4ef}
+.display-page.duel .display-player.in-pocket .status::after {content:none}
+.display-page.duel .spin-state {grid-column:1/-1;font-size:clamp(9px,.83cqw,19px);color:#e2e9f1;font-weight:700}
+.display-page.duel .spin-state:empty {display:none}
+.display-page.duel .display-player:nth-child(2) .status {justify-content:flex-end}
+.display-page.duel .display-player:nth-child(2) .spin-state {text-align:right}
+.projection-screen .display-invite {
+  inset:50% auto auto 2%;transform:translateY(-50%);width:clamp(124px,17cqw,340px);padding:clamp(8px,1.2cqw,25px);
+  border:1px solid var(--line);border-top:3px solid #ed2844;border-radius:3px;background:linear-gradient(150deg,#1c2833,#0a1016);
+}
+.projection-screen .display-invite h2 {margin-bottom:.6em;font-style:italic;font-size:clamp(14px,1.65cqw,32px)}
+.projection-screen .display-invite img {width:100%;border:clamp(4px,.6cqw,12px) solid white;border-radius:2px}
+.projection-screen .display-invite strong {margin:.1em 0;font:italic 900 clamp(20px,3cqw,56px)/1.15 var(--bc-display)}
+.projection-screen .display-invite :is(p,span) {font-size:clamp(10px,.85cqw,18px)}
+.projection-screen .center-message,.display-page.many-players .projection-screen .center-message {
+  inset:42% 18% auto;z-index:2;max-width:100%;color:#fff;
+  font:italic 900 clamp(22px,5.6cqw,130px)/1.1 var(--bc-display);
+  text-shadow:0 2px 0 #1a2531,0 3px 12px #000,0 0 36px #000;
+}
+.projection-screen .center-message small {margin-top:.5em;font-style:normal;font-size:clamp(11px,1.6cqw,32px);color:#edf2f8}
+.projection-screen .center-message.launch-cue {font-size:clamp(45px,15cqw,280px);top:33%}
+.projection-screen .display-result {
+  inset:25% 22% auto;padding:clamp(12px,3cqw,65px);border-color:var(--line);
+  border-top:3px solid #ee233f;background:linear-gradient(125deg,#21323efa,#0d151ef7 70%);
+}
+.projection-screen .display-result h2 {font-style:italic;font-size:clamp(18px,2cqw,48px);color:#ff6679}
+.projection-screen .display-result h3 {margin:.25em 0;font-size:clamp(24px,4.8cqw,96px)}
+.projection-screen .display-result p,.projection-screen .podium {font-size:clamp(12px,1.4cqw,28px)}
+.projection-screen .display-schedule {z-index:2;border:1px solid var(--line);background:linear-gradient(140deg,#13202a,#0b131a);border-radius:4px}
+.projection-screen .display-schedule .bracket-match {border-radius:4px;background:var(--bc-panel);box-shadow:inset 0 1px #ffffff0a}
+.projection-screen .display-schedule .bracket-links path {stroke:#af3345;stroke-width:2}
+.projection-screen .display-schedule .bracket-match.is-champion {border-color:#9b7c43;background:linear-gradient(125deg,#3b3021,#171b20)}
+.projection-screen .display-schedule .bracket-viewport {scrollbar-color:#536475 #10171f}
+.display-page.bracket-results .projection-screen .display-arena {opacity:.17}
+.display-page.bracket-results .projection-screen #roster {display:none}
+.display-page.bracket-results .display-result {inset:13% 3% auto;z-index:2;padding:.4cqh 1.3cqw}
+.display-page.bracket-results .display-result h2 {font-size:clamp(14px,1.65cqw,36px)}
+.display-page.bracket-results .display-result h3 {font-size:clamp(19px,2.1cqw,48px);margin:0}
+.projection-screen .display-footer {
+  inset:auto 0 0;min-height:4.1cqh;align-items:center;gap:1.1cqw;padding:.25cqh 2cqw;
+  border-top:1px solid #73879a66;background:linear-gradient(90deg,#101b24f7,#0a1016ed);
+}
+.projection-screen .display-footer .broadcast-brand {flex:none;font-size:clamp(11px,1.2cqw,27px);color:white;background:none;padding:0}
+.projection-screen .display-footer #commentary {min-width:0;background:none;padding:0;color:#e7ebf1;font-size:clamp(10px,.9cqw,19px);line-height:1.2}
+.projection-timing {margin-left:auto;display:flex;align-items:center;gap:.9cqw;text-align:right;font-variant-numeric:tabular-nums}
+.display-page .projection-screen .projection-timing span {background:none;padding:0;color:#cbd6e2;font-size:clamp(10px,.9cqw,19px)}
+.projection-timing #round-label {color:white}
+.projection-screen .display-tools {inset:auto 2% 4.7% auto}
+.projection-screen .display-tools button {border:1px solid #627080;background:#14212afa;font-size:clamp(10px,.75cqw,16px)}
+.versus-brand .broadcast-brand {display:inline-flex;font:italic 900 1.9cqw/1 var(--bc-display);letter-spacing:0;color:#fff}
+.display-page.practice-display[data-phase="ready"] .projection-screen :is(.display-header,#roster,.display-footer,#center-message,.display-tools) {display:none}
+.display-page.practice-display[data-phase="ready"] .projection-screen .display-arena {inset:0}
+@media (max-aspect-ratio:1/1) {
+  .display-page.duel .projection-screen #roster {inset:13% 2% auto;grid-template-columns:repeat(2,minmax(0,47%))}
+  .display-page.duel .display-player {min-height:0;padding:1.8cqw 2.4cqw 3cqw}
+  .display-page.duel .display-player .status {font-size:clamp(32px,8cqw,88px)}
+  .display-page.duel .display-player .name {font-size:clamp(12px,2.7cqw,24px)}
+  .projection-screen .display-header {inset:3% 2.5% auto}
+  .projection-screen .display-arena,.display-page.battle .projection-screen .display-arena {inset:20% 0 18%}
+  .display-page:not(.battle) .projection-screen .display-arena {inset:0 0 40%}
+  .projection-screen .display-invite {inset:9% auto auto 3%;transform:none;width:26%;padding:1.2cqw}
+  .display-page:not(.duel) .projection-screen #roster,
+  .display-page.battle:not(.duel) .projection-screen #roster {inset:auto 2% 8%;width:auto;height:40%;display:grid;align-content:center;justify-content:space-between;grid-auto-flow:column;grid-template-columns:repeat(2,minmax(0,49%));grid-template-rows:repeat(var(--roster-rows),minmax(0,auto));gap:.55cqh 0}
+  .display-page.battle:not(.duel) .projection-screen .display-arena {inset:2% 0 39%}
+  .projection-screen .display-player {padding:.4cqh .8cqw;gap:.8cqw}
+  .projection-screen .display-player .name {font-size:clamp(10px,2.5cqw,18px)}
+  .projection-screen .display-result,.display-page.many-players .projection-screen .display-result {inset:28% 4% auto}
+  .display-page.bracket-results .display-result {inset:11% 2% auto;gap:1em}
+  .projection-screen .display-schedule {inset:19% 2% 8%}
+  .projection-screen .display-footer {flex-wrap:wrap;gap:1px 6px}
+  .projection-screen .display-footer #commentary:empty {display:none}
+}
+@media (max-height:420px) and (min-aspect-ratio:1/1) {
+  .projection-screen #roster .display-player {padding-block:.35cqh}
+  .display-page.duel .projection-screen #roster .display-player {padding-block:.7cqw 1.35cqw}
+  .projection-screen #roster {gap:1px}
+  .projection-screen .display-footer {min-height:5cqh}
+}
+
+/* RPM is the audience's primary match readout, in both duel and full-roster views. */
+.projection-screen .score-identity {grid-column:1/-1;display:flex;align-items:center;gap:.55cqw;min-width:0}
+.projection-screen .score-identity .name {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.display-page.battle:not(.duel) .display-player {grid-template-columns:minmax(0,1fr);gap:.15cqh;padding:.55cqh 1cqw}
+.display-page.battle:not(.duel) .display-player .status {display:flex;align-items:baseline;gap:.5cqw;font:italic 900 clamp(25px,3.55cqw,84px)/1 var(--bc-display);color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.display-page.battle:not(.duel) .rpm-value {font:inherit}
+.display-page.battle:not(.duel) .status small {font:italic 900 .3em/1 var(--bc-display);letter-spacing:.03em;color:#e6edf5}
+.projection-screen .spin-state {grid-column:1/-1;font-size:clamp(9px,.85cqw,19px);line-height:1.2;color:#e2e9f1}
+.projection-screen .spin-state:empty {display:none}
+.display-page.battle:not(.duel) .display-player.in-pocket .status::after {content:none}
+.display-page.many-players .projection-screen #roster .status {font-size:clamp(23px,2.8cqw,66px)}
+.display-page.many-players .projection-screen .display-player {padding-block:.3cqh}
+.display-page.duel .projection-screen .rpm-value {min-width:0}
+@media(max-aspect-ratio:1/1) {
+  .display-page.duel .display-player .status {font-size:clamp(35px,10.3cqw,96px);gap:1cqw}
+  .display-page.battle:not(.duel) .projection-screen .display-player {grid-template-columns:minmax(0,1fr) auto;column-gap:1cqw;padding:.25cqh 1cqw}
+  .display-page.battle:not(.duel) .score-identity {grid-column:1;gap:.7cqw}
+  .display-page.battle:not(.duel) .projection-screen #roster .status {grid-column:2;grid-row:1;font-size:clamp(23px,6cqw,45px);gap:.6cqw}
+  .display-page.battle:not(.duel) .spin-state {grid-column:1/-1;font-size:clamp(9px,2.3cqw,13px)}
+}
+@media(max-height:420px) and (min-aspect-ratio:1/1) {
+  .display-page.battle:not(.duel) .projection-screen #roster .status {font-size:clamp(23px,3.3cqw,45px)}
+  .display-page.battle:not(.duel) .spin-state {font-size:9px}
+  .display-page.battle:not(.duel) .projection-screen #roster .display-player {padding-block:.2cqh}
+}
+
+/* Keep duel readouts in the upper side space, above the bowl's active center. */
+.display-page.battle.duel .projection-screen #roster {inset:15% 1.1% auto;align-content:start}
+.display-page.duel .projection-screen .rpm-value {flex:none}
+.display-page.duel .projection-screen .status {display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+.display-page.duel .projection-screen .status small {justify-self:end;font-size:.21em;line-height:1.25;letter-spacing:.06em}
+.display-page.duel .display-player:nth-child(2) .rpm-value {text-align:right}
+.display-page.many-players .projection-screen #roster .display-player {grid-template-columns:minmax(0,1fr) auto;column-gap:.7cqw;align-content:center;padding:.4cqh .7cqw}
+.display-page.many-players .projection-screen #roster .score-identity {grid-column:1;grid-row:1}
+.display-page.many-players .projection-screen #roster .status {grid-column:2;grid-row:1;font-size:clamp(23px,2.6cqw,62px)}
+.display-page.many-players .projection-screen #roster .player-number {font-size:clamp(12px,1.1cqw,22px);height:1.2em}
+.display-page.many-players .projection-screen #roster .spin-state {grid-row:2;font-size:clamp(9px,.75cqw,16px)}
+@media(max-aspect-ratio:1/1) {
+  .display-page.battle.duel .projection-screen #roster {inset:13% 2% auto}
+  .display-page.duel .projection-screen .status {gap:0}
+  .display-page.many-players .projection-screen #roster .status {font-size:clamp(23px,6cqw,45px)}
+}
+
+/* The lobby keeps QR entry and names, with the same audience-first RPM hierarchy. */
+.display-page[data-phase="lobby"] :is(#match-title,#room-code,#join-short,.display-invite p,.spin-state) {display:none}
+.display-page[data-phase="lobby"] .projection-title {gap:0}
+.display-page[data-phase="lobby"] .projection-title #mode-label {font-size:clamp(16px,2.65cqw,66px);font-weight:900;color:#fff}
+.display-page[data-phase="lobby"] .projection-screen #roster .display-player {grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;gap:.4cqh;padding:1cqh 1.1cqw}
+.display-page[data-phase="lobby"] .projection-screen #roster .score-identity {grid-column:1/-1;grid-row:1}
+.display-page[data-phase="lobby"] .projection-screen #roster .name {font-size:clamp(12px,1.4cqw,30px)}
+.display-page[data-phase="lobby"] .projection-screen #roster .status {grid-column:1/-1;grid-row:2;display:flex;align-items:baseline;justify-content:flex-end;gap:.65cqw;color:#fff;font:italic 900 clamp(42px,6.6cqw,160px)/1 var(--bc-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.display-page[data-phase="lobby"] .projection-screen #roster .rpm-value {font:inherit;flex:none}
+.display-page[data-phase="lobby"] .projection-screen #roster .status small {font:italic 900 .28em/1 var(--bc-display);letter-spacing:.03em;color:#e6edf5}
+.display-page[data-phase="lobby"] .projection-screen #roster.lobby-grid {width:36%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(var(--roster-rows),auto);grid-auto-flow:column;align-content:center}
+.display-page[data-phase="lobby"] .projection-screen #roster.lobby-grid .display-player {padding:.65cqh .8cqw}
+.display-page[data-phase="lobby"] .projection-screen #roster.lobby-grid .status {font-size:clamp(32px,3.8cqw,90px)}
+.display-page[data-phase="lobby"] .projection-screen #roster.lobby-grid .name {font-size:clamp(12px,1.15cqw,25px)}
+.display-page[data-phase="lobby"] .projection-screen #roster.dense .status {font-size:clamp(26px,2.6cqw,62px)}
+.display-page[data-phase="lobby"] .projection-screen #roster.dense .name {font-size:clamp(11px,1cqw,22px)}
+@media(max-aspect-ratio:1/1) {
+  .display-page[data-phase="lobby"] .projection-screen #roster,
+  .display-page[data-phase="lobby"] .projection-screen #roster.lobby-grid {width:auto;inset:auto 2% 8%;height:40%;grid-template-columns:repeat(2,minmax(0,49%))}
+  .display-page[data-phase="lobby"] .projection-screen #roster .display-player {padding:.35cqh 1.3cqw;gap:.15cqh}
+  .display-page[data-phase="lobby"] .projection-screen #roster .status {font-size:clamp(36px,11cqw,72px);gap:1.2cqw}
+  .display-page[data-phase="lobby"] .projection-screen #roster.lobby-grid .status {font-size:clamp(27px,7.5cqw,52px)}
+  .display-page[data-phase="lobby"] .projection-screen #roster .name {font-size:clamp(12px,3cqw,21px)}
+  .display-page[data-phase="lobby"] .projection-screen #roster.dense .display-player {grid-template-columns:minmax(0,1fr) auto;column-gap:1cqw}
+  .display-page[data-phase="lobby"] .projection-screen #roster.dense .score-identity {grid-column:1;grid-row:1}
+  .display-page[data-phase="lobby"] .projection-screen #roster.dense .status {grid-column:2;grid-row:1;font-size:clamp(25px,7cqw,45px)}
+}
+@media(max-height:420px) and (min-aspect-ratio:1/1) {
+  .display-page[data-phase="lobby"] .projection-screen #roster .status {font-size:clamp(32px,4.4cqw,45px)}
+  .display-page[data-phase="lobby"] .projection-screen #roster.lobby-grid .status {font-size:clamp(25px,3.5cqw,35px)}
+  .display-page[data-phase="lobby"] .projection-screen #roster.dense .status {font-size:23px}
+  .display-page[data-phase="lobby"] .projection-screen #roster .display-player {padding-block:.3cqh;gap:0}
+}
+
+@media(max-height:420px) and (min-aspect-ratio:1/1) {
+  .display-page[data-phase="lobby"] .projection-screen #roster.dense .display-player {grid-template-columns:minmax(0,1fr) auto;column-gap:.6cqw}
+  .display-page[data-phase="lobby"] .projection-screen #roster.dense .score-identity {grid-column:1;grid-row:1}
+  .display-page[data-phase="lobby"] .projection-screen #roster.dense .status {grid-column:2;grid-row:1}
+}

@@ -3,7 +3,7 @@ import { partDefinition } from './part-catalog.js';
 export const assemblyArtPath=(parts={},tone='red')=>'/assets/art/top-'+(tone==='blue'?'blue-':'')+(parts.blade??0)+(parts.ratchet??0)+(parts.bit??0)+'.png';
 
 export function versusMarkup(players, prefix = 'vs') {
- return '<div class="versus-brand">SPINNING-TOP BATTLE<span>戰鬥陀螺對決</span></div>' + players.slice(0,2).map((player,i)=>{
+ return '<div class="versus-brand"><span class="broadcast-brand"><img src="/assets/cathayblade.svg" alt="CathayBlade"></span></div>' + players.slice(0,2).map((player,i)=>{
   const parts=player.parts||{blade:0,ratchet:0,bit:0};
   const tone=i?'blue':'red';
   const tiles=[['blade','Blade','攻擊環'],['ratchet','Ratchet','棘輪'],['bit','Bit','軸心']].map(([key,label,zh])=>'<div class="versus-part"><img src="/assets/art/part-'+(tone==='blue'?'blue-':'')+key+'-'+parts[key]+'.png" alt=""><div><span>'+zh+'</span><strong>'+partDefinition(key,parts[key]).name+'</strong></div></div>').join('');

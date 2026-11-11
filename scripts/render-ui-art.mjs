@@ -5,7 +5,7 @@ import path from 'node:path';
 
 // Rebuild local UI artwork from the same meshes and assembly offsets used by combat.
 mkdirSync('.qa',{recursive:true});mkdirSync('public/assets/art',{recursive:true});
-const app=createApp({port:0,dataDir:mkdtempSync(path.resolve('.qa','ui-art-'))});await app.listen();
+const app=createApp({port:0,host:'127.0.0.1',dataDir:mkdtempSync(path.resolve('.qa','ui-art-'))});await app.listen();
 const base='http://127.0.0.1:'+app.server.address().port;
 const executablePath=process.env.CHROME_PATH||['C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(existsSync);
 if(!executablePath)throw new Error('Set CHROME_PATH to an installed Chromium browser.');

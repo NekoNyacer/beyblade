@@ -1,3 +1,5 @@
+import {serverClockOffset} from './server-clock.js';
+import {setLauncherKit,sizeWinder} from './launcher.js';
 import {FlexibleRipcord} from './flexible-ripcord.js';
 import {LaunchScreenGate} from './launch-screen.js';
 import {appendRipcordEvent,measureRipcord} from './ripcord.js';
@@ -10,7 +12,7 @@ import { partDefinition } from './part-catalog.js';
   const accessToken = new URLSearchParams(location.search).get('invite');
   const key = `arena-player:${roomId}`;
   let identity, state, socket, reconnectTimer, acknowledgementTimer, readyTimer;
-  let serverOffset = 0;
+  let serverOffset = null;
   let attempts = 0, connecting = false, joined = false, pendingRound = null, gesture = null;
   let online = false, releasedRound = null, stroke = 0;
   const screenGate=new LaunchScreenGate({onchange:ready=>{if(!ready)stopGesture();launchClock();}});
@@ -18,7 +20,7 @@ import { partDefinition } from './part-catalog.js';
   const launcherPreview=new LauncherPreview($('loaded-top'));
   const combinationPreview=new LauncherPreview($('combination-preview'));
   if(combinationPreview.camera){
-    combinationPreview.camera.position.set(0,1.45,2.05);
+    combinationPreview.camera.position.set(0,1.6,2.05);
     combinationPreview.camera.lookAt(0,.35,0);
   }else{
     $('combination-preview').textContent='3D 預覽無法顯示';
@@ -29,6 +31,7 @@ import { partDefinition } from './part-catalog.js';
   const error = message => setText(joined ? 'player-error' : 'join-error', message || '');
   try { identity = JSON.parse(localStorage.getItem(key)); } catch { /* Private mode may disable storage. */ }
   if (!identity || typeof identity.token !== 'string' || typeof identity.playerId !== 'string') identity = null;
+  screenGate.setPreparation(identity?null:'name');
   $('room-label').textContent = roomId ? `競技場 ${roomId}` : '尚未指定競技場';
   if (!roomId || !/^[a-zA-Z0-9_-]{1,64}$/.test(roomId)) {
     error('這個連結沒有有效的房間編號，請重新掃描大螢幕上的 QR 碼。');
@@ -46,7 +49,7 @@ import { partDefinition } from './part-catalog.js';
   }
   function canPull() {
     const now=Date.now()+serverOffset;
-    return screenGate.ready && online && ['countdown','shoot','running'].includes(state?.phase) && now >= state.round.shootAt && !deadlinePassed() && !state.round.launchResumed
+    return innerWidth > innerHeight && screenGate.ready && online && ['countdown','shoot'].includes(state?.phase) && now >= state.round.shootAt && !deadlinePassed() && !state.round.launchResumed
       && state.round?.playerIds?.includes(identity?.playerId) && !state.round.pulledIds?.includes(identity.playerId)
       && pendingRound !== state.round.id && releasedRound !== state.round.id;
   }
@@ -54,15 +57,11 @@ import { partDefinition } from './part-catalog.js';
     const previous=gesture;gesture=null;
     if(previous && $('handle').hasPointerCapture(previous.id))$('handle').releasePointerCapture(previous.id);
     $('ripcord').classList.remove('dragging');
-    if(reset){$('ripcord').style.setProperty('--pull','0px');$('ripcord').style.setProperty('--pull-y','0px');}
+    if(reset&&releasedRound!==state?.round?.id){$('ripcord').style.setProperty('--pull','0px');$('ripcord').style.setProperty('--pull-y','0px');}
   }
   function sizeLauncher(){
     if($('launcher-screen').hidden)return;
-    const width=$('ripcord').clientWidth, assembly=document.querySelector('.cord-assembly');
-    stroke=Math.max(1,width-assembly.offsetLeft-assembly.offsetWidth-Math.max(18,width*.045));
-    const exit=document.querySelector('.launcher-body').offsetLeft+document.querySelector('.launcher-body').offsetWidth;
-    $('ripcord').style.setProperty('--stroke',stroke+'px');
-    $('ripcord').style.setProperty('--cord-length',(assembly.offsetLeft+stroke-exit+7)+'px');
+    stroke=sizeWinder($('ripcord'));
   }
   function releaseLauncher(){
     if(!state?.round||releasedRound===state.round.id)return;
@@ -73,30 +72,38 @@ import { partDefinition } from './part-catalog.js';
   function launchClock(){
     if(!joined||!state)return;
     const active=state.round?.playerIds?.includes(identity.playerId),now=Date.now()+serverOffset;
+    const round=state.round,launchPhase=['countdown','shoot'].includes(state.phase);
+    const accepted=active&&round.pulledIds?.includes(identity.playerId);
+    const closed=['running','result','finished'].includes(state.phase)||(launchPhase&&deadlinePassed());
+    if(active&&(accepted||closed))releaseLauncher();
+    else if(active&&online&&releasedRound===round.id&&pendingRound!==round.id){
+      releasedRound=null;stopGesture();$('ripcord').classList.remove('released');
+    }
+    const enabled=canPull(),launched=!!round&&releasedRound===round.id;
     let cue='';
-    if(active&&state.phase==='countdown')cue=now<state.round.countdownAt?'VS':now<state.round.countdownAt+3000?String(Math.max(1,Math.ceil((state.round.countdownAt+3000-now)/1000))):now<state.round.shootAt?'GO':'SHOOT';
-    if(active&&['shoot','running'].includes(state.phase)&&now<state.round.deadline)cue='SHOOT';
-    setText('launch-cue',cue);
-    setText('launch-help', !online?'連線中斷，正在重新連線':active&&['shoot','running'].includes(state.phase)&&deadlinePassed()?'發射完成，請看大螢幕':active?'等待 SHOOT 出現後發射':'已完成組裝，等待主持人安排對戰');
-    const enabled=canPull();
-    const launched=!!state.round&&(releasedRound===state.round.id||state.round.pulledIds?.includes(identity.playerId));
+    if(online&&active&&state.phase==='countdown'&&now<round.shootAt)cue=now<round.countdownAt?'VS':String(Math.max(1,Math.ceil((round.shootAt-now)/1000)));
+    setText('launch-cue',enabled?'SHOOT':cue);
+    $('launch-cue').classList.toggle('shoot-signal',enabled);
+    const status=!online?'連線中斷，正在重新連線':launched?(accepted||pendingRound===round.id?'已發射，請看大螢幕':'已用標準力道自動發射'):enabled?'SHOOT！向右抽到底':active&&round.launchResumed?'即將恢復對戰，請看大螢幕':active?'先握住拉環，看見 SHOOT 就向右抽到底':'已完成組裝，等待主持人安排對戰';
+    setText('launch-help',status);setText('launch-status',status);
     setText('launch-readiness-label',!online?'連線中':launched?'已發射':enabled?'向右抽出':'待機');
     setText('launch-readiness-code',!online?'SYNC':launched?'LAUNCHED':enabled?'SHOOT':'READY');
     $('ripcord').classList.toggle('active',enabled);
     $('handle').setAttribute('aria-disabled',String(!enabled));
     if(enabled&&gesture&&!gesture.armed){gesture.armed=true;gesture.points=[{x:gesture.start,y:gesture.startY,t:performance.now()}];}
-    if(active&&['shoot','running'].includes(state.phase)&&deadlinePassed())releaseLauncher();
   }
   function render() {
     if(!joined)return;
     const me=state?.players?.find(p=>p.id===identity.playerId);
     renderAssembly(me);
+    setLauncherKit($('ripcord'),me?.color);
     const parts=JSON.stringify([me?.parts,me?.color]);
     if(parts!==launcherParts){launcherParts=parts;launcherPreview.set(me?.parts||{blade:0,ratchet:0,bit:0},me?.color||'#55d882');}
     const launchMode=$('assembly').hidden;
     document.body.classList.toggle('launch-mode',launchMode);
     document.querySelector('meta[name="theme-color"]').content=launchMode?'#0b1019':'#10131a';
     $('launcher-screen').hidden=!launchMode;
+    screenGate.setPreparation(launchMode?null:'assembly');
     screenGate.setActive(launchMode);
     $('ripcord').classList.toggle('active',canPull());
     const accepted=state?.round?.pulledIds?.includes(identity.playerId);
@@ -127,9 +134,7 @@ import { partDefinition } from './part-catalog.js';
   }
   function drawParts(){
     for(const {k,row,preview} of previews){
-      preview.set(draft[k]);
-      // Keep the actual game meshes; favor the selected part over adjacent options.
-      if(preview.part){preview.part.children.forEach((piece,index)=>{piece.scale.multiplyScalar(index===1?1.18:.78);});preview.render();}
+      preview.set(draft[k],state?.players?.find(p=>p.id===identity?.playerId)?.color||'#ed2340');
       const number=String(draft[k]+1).padStart(2,'0');
       row.querySelector('output').textContent=partDefinition(k,draft[k]).name+' · '+number+' / 03';
       row.querySelector('.part-description').textContent=partDefinition(k,draft[k]).description;
@@ -158,12 +163,26 @@ import { partDefinition } from './part-catalog.js';
   $('random-parts').onclick=()=>{if(!canEditParts())return;for(const k of Object.keys(draft))draft[k]=Math.floor(Math.random()*3);drawParts();};
   $('confirm-parts').onclick=()=>{if(socket?.readyState!==WebSocket.OPEN)return;assemblyPending=true;socket.send(JSON.stringify({type:'assemble',parts:draft}));render();};
   drawParts();
+  function clearIdentity(message) {
+    releasedRound=null;stopGesture();clearTimeout(reconnectTimer);clearTimeout(acknowledgementTimer);clearInterval(readyTimer);
+    $('ripcord').classList.remove('released');
+    const previous=socket;socket=null;previous?.close();
+    identity=null;state=null;joined=false;online=false;connecting=false;attempts=0;
+    pendingRound=null;releasedRound=null;assemblyPending=false;editing=true;lastParts=null;draft={blade:0,ratchet:0,bit:0};
+    try { localStorage.removeItem(key); } catch { /* The in-memory identity is still cleared. */ }
+    $('join-panel').hidden=false;$('player-panel').hidden=true;$('launcher-screen').hidden=true;$('assembly').hidden=false;
+    $('retry').hidden=true;$('join-button').disabled=false;setText('join-button-label','加入對戰');
+    document.body.classList.remove('launch-mode');document.querySelector('meta[name="theme-color"]').content='#10131a';
+    screenGate.setActive(false);screenGate.setPreparation('name');
+    drawParts();connection(false,'尚未加入');error(message);$('name').focus();
+  }
   function receiveState(next) {
     if (!next || next.roomId !== roomId || !Array.isArray(next.players)) return;
+    if(identity&&!next.players.some(p=>p.id===identity.playerId)){clearIdentity('你已被主持人剔除，可重新輸入名字加入。');return false;}
     const newRound=state?.round?.id!==next.round?.id;
     state=next;
     if(newRound){releasedRound=null;stopGesture();$('ripcord').classList.remove('released');}
-    if(Number.isFinite(next.serverTime))serverOffset=next.serverTime-Date.now();
+    if(Number.isFinite(next.serverTime))serverOffset=serverClockOffset(serverOffset,next.serverTime);
     clearInterval(readyTimer);
     if(['countdown','shoot','running'].includes(state.phase))readyTimer=setInterval(launchClock,50);
     if (pendingRound !== null && (state.round?.id !== pendingRound || state.round?.pulledIds?.includes(identity.playerId))) {
@@ -178,31 +197,35 @@ import { partDefinition } from './part-catalog.js';
     connecting = true;
     connection(false, '連線中…');
     $('retry').hidden = true;
-    socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws?${new URLSearchParams({ room: roomId, role: 'player', token: identity.token })}`);
+    const current = socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws?${new URLSearchParams({ room: roomId, role: 'player', token: identity.token })}`);
     socket.addEventListener('open', () => {
+      if(socket!==current)return;
       connecting = false; attempts = 0;
       error('');
       // Await a fresh state before re-enabling a previously open ripcord.
       setText('connection', '同步中…');
     });
     socket.addEventListener('message', event => {
+      if(socket!==current)return;
       let packet;
       try { packet = JSON.parse(event.data); } catch { return; }
       if (packet.type === 'state') {
-        receiveState(packet.state);
+        if(receiveState(packet.state)===false)return;
         connection(true, '已連線');
       } else if (packet.type === 'error') {
         assemblyPending=false;pendingRound = null; clearTimeout(acknowledgementTimer);
         error(typeof packet.message === 'string' ? packet.message : '操作沒有完成，請稍後再試。'); render();
       }
     });
-    socket.addEventListener('close', () => {
+    socket.addEventListener('close', event => {
+      if(socket!==current)return;
+      if(event.code===1008&&event.reason==='Removed'){clearIdentity('你已被主持人剔除，可重新輸入名字加入。');return;}
       assemblyPending=false;connecting = false; pendingRound = null; clearTimeout(acknowledgementTimer);
       connection(false, '連線中斷');
       $('retry').hidden = false;
-      reconnectTimer = setTimeout(connect, Math.min(15000, 800 * 2 ** Math.min(attempts++, 5)));
+      reconnectTimer = setTimeout(()=>join(identity?.name), Math.min(15000, 800 * 2 ** Math.min(attempts++, 5)));
     });
-    socket.addEventListener('error', () => { error('暫時連不上主機，正在重試。請保持此頁開啟。'); });
+    socket.addEventListener('error', () => { if(socket!==current)return;error('暫時連不上主機，正在重試。請保持此頁開啟。'); });
   }
   async function join(name) {
     if (connecting) return;
@@ -210,7 +233,7 @@ import { partDefinition } from './part-catalog.js';
       error('這個連結缺少入場邀請，請重新掃描大螢幕上的 QR 碼。');
       return;
     }
-    connecting = true; $('join-button').disabled = true;
+    clearTimeout(reconnectTimer);connecting = true; $('join-button').disabled = true;
     setText('join-button-label', identity ? '恢復選手身分…' : '正在加入…'); error('');
     try {
       const response = await fetch('/api/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ roomId, name, ...(identity ? {token: identity.token} : {accessToken}) }) });
@@ -219,9 +242,7 @@ import { partDefinition } from './part-catalog.js';
         const message = result.error || result.message || '暫時無法加入，請向主持人確認房間是否開放。';
         // Only an explicit server rejection invalidates a saved identity.
         if (identity && message === '連線身分已失效，請重新加入') {
-          identity = null;
-          try { localStorage.removeItem(key); } catch { /* Retry still uses the cleared in-memory identity. */ }
-          $('name').focus();
+          clearIdentity('你已離開此房間，請重新輸入名字加入。');
         }
         throw new Error(message);
       }
@@ -229,6 +250,7 @@ import { partDefinition } from './part-catalog.js';
       identity = { playerId: result.playerId, token: result.token, name };
       let storageFailed = false;
       try { localStorage.setItem(key, JSON.stringify(identity)); } catch { storageFailed = true; }
+      document.activeElement?.blur();
       joined = true; $('join-panel').hidden = true; $('player-panel').hidden = false;
       receiveState(result.state);
       connecting = false;
@@ -237,6 +259,7 @@ import { partDefinition } from './part-catalog.js';
     } catch (err) {
       error(err.message || '連線失敗，請確認 Wi-Fi 後再試。');
       connecting = false;
+      if(joined&&identity)reconnectTimer=setTimeout(()=>join(identity?.name),Math.min(15000,800*2**Math.min(attempts++,5)));
     } finally {
       $('join-button').disabled = false;
       setText('join-button-label', identity ? '恢復連線' : '加入對戰');
@@ -245,10 +268,10 @@ import { partDefinition } from './part-catalog.js';
   function pull(power,angle=0) {
     if (!canPull() || socket?.readyState !== WebSocket.OPEN) return;
     pendingRound = state.round.id;
-    releaseLauncher();
     error('');
     try { socket.send(JSON.stringify({ type: 'pull', roundId: state.round.id, power: Math.max(0, Math.min(1, power)), angle })); }
-    catch { pendingRound = null; error('拉環未送出，請重新連線後再試。'); }
+    catch { pendingRound = null; error('拉環未送出，請重新連線後再試。'); return; }
+    releaseLauncher();
     render();
     clearTimeout(acknowledgementTimer);
     acknowledgementTimer = setTimeout(() => {
@@ -264,10 +287,10 @@ import { partDefinition } from './part-catalog.js';
     if (!name) { error('請先輸入你的顯示名稱。'); $('name').focus(); return; }
     join(name);
   });
-  $('retry').addEventListener('click',connect);
+  $('retry').addEventListener('click',()=>join(identity?.name));
   $('handle').addEventListener('pointerdown',event=>{
     const active=state?.round?.playerIds?.includes(identity?.playerId);
-    const canHold=screenGate.ready&&online&&active&&(['ready','countdown'].includes(state.phase)||canPull());
+    const canHold=innerWidth>innerHeight&&screenGate.ready&&online&&active&&!state.round.launchResumed&&releasedRound!==state.round.id&&(state.phase==='ready'||(state.phase==='countdown'&&Date.now()+serverOffset<state.round.shootAt)||canPull());
     if(!canHold||gesture||!event.isPrimary||(event.pointerType==='mouse'&&event.button!==0))return;
     event.preventDefault();sizeLauncher();
     gesture={id:event.pointerId,start:event.clientX,startY:event.clientY,armed:canPull(),points:[],stroke};

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 86" fill="none">
+  <style>
+    svg:has(#carbon:target) { --cord-deep:#13181d; --cord-shadow:#252b31; --cord-base:#3b4247; --cord-lit:#5a6268; --cord-edge:#98a1a4; }
+    svg:has(#amber:target) { --cord-deep:#98510c; --cord-shadow:#c78012; --cord-base:#eea91b; --cord-lit:#ffca48; --cord-edge:#ffe697; }
+    svg:has(#smoke:target) { --cord-deep:#3f4a51; --cord-shadow:#6b767b; --cord-base:#949fa1; --cord-lit:#c6d0ce; --cord-edge:#e9efea; }
+  </style>
+  <view id="carbon"/><view id="amber"/><view id="smoke"/>
+  <defs>
+    <linearGradient id="nylon" x1="43" y1="19" x2="69" y2="78" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--cord-edge, #fcfbef)"/><stop offset=".35" stop-color="var(--cord-lit, #e4e5dc)"/>
+      <stop offset=".69" stop-color="var(--cord-base, #d5d9d3)"/><stop offset="1" stop-color="var(--cord-lit, #f2f1e5)"/>
+    </linearGradient>
+    <linearGradient id="wall" x1="20" y1="46" x2="146" y2="63" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--cord-shadow, #acb5b3)"/><stop offset=".28" stop-color="var(--cord-lit, #e0e4db)"/>
+      <stop offset=".8" stop-color="var(--cord-shadow, #bac4c1)"/><stop offset="1" stop-color="var(--cord-deep, #98a5a4)"/>
+    </linearGradient>
+    <linearGradient id="bore" x1="67" y1="18" x2="96" y2="49" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--cord-deep, #899693)"/><stop offset=".48" stop-color="var(--cord-base, #bdc6c0)"/>
+      <stop offset=".85" stop-color="var(--cord-lit, #eeeee2)"/><stop offset="1" stop-color="var(--cord-base, #d3d9d1)"/>
+    </linearGradient>
+  </defs>
+  <!-- The proximal bridge and outer rim are one molding. The grip aperture is open. -->
+  <path d="M2 37.3 14.6 35.9 23.7 29.6Q26.2 27.8 32.6 26.5L118.9 13.7Q132.4 11.9 140.5 18.3L149.4 25.4 155.6 30.3Q159.7 34 156.3 39.4L124 66.5Q118.2 71.1 110.6 72.1L64.4 72.8 48.2 71.9Q37.3 71.2 29.2 64.5L18.8 54.7 2 51.2Z
+           M43.1 41.1 51.6 50.3Q54.7 53.4 61.2 53.9L105.4 53.7Q109.4 53.6 113.2 50.9L138.4 30.2 132.9 26.9Q129.6 25.1 125.8 25.8L47.3 38.1Q43.1 38.8 43.1 41.1Z"
+        fill="url(#wall)" fill-rule="evenodd" opacity=".96"/>
+  <path d="M2 35.9 14.8 34.5 25 27.9Q27.6 26.3 33.7 25.3L119.8 12.4Q131.3 11.1 139 16.3L154 27.3Q157.7 30.1 153.1 34.8L121.2 61.4Q116.5 65.8 109.2 66.7L61.6 67.6 46.6 66.3Q37.9 65.2 30.5 59.2L18.7 50.1 2 47.7Z
+           M37.7 37.3Q37.1 38.8 39.4 42L48.9 52.6Q53 56.8 60.2 57.4L104.9 57.5Q111 57.3 115.4 53.7L141.2 32Q143.8 29.7 141.1 27.7L134.1 23.6Q130.2 21.6 125.6 22.3L43.1 34.4Q38.5 35.1 37.7 37.3Z"
+        fill="url(#nylon)" fill-rule="evenodd" opacity=".97"/>
+  <path d="M37.7 37.3Q38.5 35.1 43.1 34.4L125.6 22.3Q130.2 21.6 134.1 23.6L141.1 27.7Q143.8 29.7 141.2 32L137.7 34.8Q139.4 31.8 136.5 30.4L131.5 27.5Q129.2 26.2 125.8 26.6L48.2 38.3Q44.3 38.7 43.6 41.6L45.4 48.7 39.4 42Q37.1 38.8 37.7 37.3Z"
+        fill="url(#bore)"/>
+  <path d="m39.3 41.9 9.6 10.7q4.1 4.2 11.3 4.8l44.7.1q6.1-.2 10.5-3.8l21.8-18.4-22.5 19.8q-4.2 3.7-10.1 3.9L60 59q-7-.4-11.5-4.9Z" fill="var(--cord-edge, #fffef1)" opacity=".86"/>
+  <path d="m30.1 27.5 90.8-13.6q9.9-1.1 15.7 2.7l4.5 3.1-8.3-2.9q-3.4-.9-8.4-.2L37.8 29.5l-7.9 3.2Z" fill="var(--cord-edge, #fffef2)" opacity=".94"/>
+  <path d="m138.6 17 14.2 10.4q2.3 1.7.9 3.6L122 58.3l-5.2 1.9 29.6-27.9q3-2.8.4-5.4Z" fill="var(--cord-shadow, #b8c1bc)" opacity=".72"/>
+  <path d="m37.8 60 8.6 3.5 62 .6q7.6-.3 12.8-4.4l-2 3q-5 3.5-11.9 3.5l-58.8.1q-6.8-.9-10.7-6.3Z" fill="var(--cord-edge, #fbfbef)" opacity=".83"/>
+  <path d="m2 36 12.8-1.5 8-5.2 3.9 1.6-7.8 8.4-16.9.9Z" fill="var(--cord-edge, #f8f8e9)"/>
+  <path d="m2 47.4 16.7 2.4 11.9 9.4-2 1.8-11.5-8.4L2 50.8Z" fill="var(--cord-shadow, #b3bfbb)"/>
+  <path d="m22 36.1 3.4-3.9 2.5.3-3.5 4.1Zm4.4.8 3.4-3.8 2.4.4-3.3 3.9Z" fill="var(--cord-base, #c3cbc3)"/>
+</svg>

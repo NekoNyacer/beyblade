@@ -1,0 +1,13 @@
+body.guide-page { margin:0; min-height:100dvh; color:var(--bc-ink); background:radial-gradient(ellipse at 50% 0%,#233544,#0a0e17 72%); }
+.guide-shell { max-width:1150px; margin:clamp(8px,3vw,40px) auto; padding:clamp(12px,2.8vw,36px); }
+.guide-shell header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-bottom:18px; border-bottom:1px solid var(--bc-line); }
+.guide-shell header>a:last-child { color:var(--bc-ink); text-decoration:none; background:var(--bc-button); border:1px solid var(--bc-line); border-radius:4px; padding:6px 12px; font-size:14px; }
+.guide-content { display:grid; grid-template-columns:minmax(150px,210px) minmax(0,1fr); gap:clamp(16px,3vw,38px); align-items:start; margin-top:20px; }
+.guide-content nav { position:sticky; top:15px; padding:7px; }.guide-content nav a { display:flex; align-items:center; gap:9px; text-decoration:none; color:#d3dfeb; font-size:14px; padding:10px 8px; border-bottom:1px solid #314252; }
+.guide-content nav a:last-child { border-bottom:0; }.guide-content nav b { font:italic 900 17px/1 var(--bc-display); color:#ff7c8f; }.guide-content nav a:hover { background:#273846; }
+.guide-content main { min-width:0; }.guide-content h1 { margin:0 0 10px; font-size:clamp(28px,4vw,49px); font-style:italic; }.guide-content main>p:first-of-type { color:#c0d0dd; }
+.guide-content h2 { margin:28px 0 10px; padding:7px 12px; border-left:3px solid var(--bc-red); background:linear-gradient(100deg,#431b28,transparent 74%); font-style:italic; font-size:21px; scroll-margin-top:16px; }
+.guide-content p,.guide-content li,.guide-content td { color:#c6d3df; line-height:1.8; }.guide-content li { margin:8px 0; }.guide-content strong { color:white; }.guide-content a { color:#a9d4ff; }
+.guide-content table { width:100%; border-collapse:collapse; }.guide-content :is(th,td) { text-align:left; padding:9px; border-bottom:1px solid var(--bc-line); }.guide-content th { background:#1c2a36; }.guide-content td:first-child { white-space:nowrap; font-weight:bold; }
+.guide-content code { background:#243443; padding:2px 4px; overflow-wrap:anywhere; }.guide-content ol,.guide-content ul { padding-inline-start:1.5em; }
+@media(max-width:700px){ .guide-shell { margin:5px; border-width:3px; }.guide-content { grid-template-columns:1fr; }.guide-content nav { position:static; display:grid; grid-template-columns:1fr 1fr; }.guide-content nav a { padding:7px; flex-wrap:wrap; }.guide-content nav a:nth-last-child(2) { border:0; } }

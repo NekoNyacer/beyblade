@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import { createBattle, stepBattle } from '../game.mjs';
 import { railConfigForCount, surfaceHeight } from '../public/assets/rail-config.js';
 const players=n=>Array.from({length:n},(_,i)=>({id:String(i)}));
-function contact(angle=.3,radial=1,tangent=5){
+function contact(angle=.3,radial=1,tangent=-5){
  const b=createBattle(players(2),21),a=b.tops[0],r=b.railRadius;
- Object.assign(a,{x:r*Math.cos(angle),z:r*Math.sin(angle),spin:angle,vx:radial*Math.cos(angle)-tangent*Math.sin(angle),vz:radial*Math.sin(angle)+tangent*Math.cos(angle),drag:0});
+ Object.assign(a,{x:r*Math.cos(angle),z:r*Math.sin(angle),y:surfaceHeight(r*Math.cos(angle),r*Math.sin(angle),b.arenaRadius),spin:angle,vx:radial*Math.cos(angle)-tangent*Math.sin(angle),vz:radial*Math.sin(angle)+tangent*Math.cos(angle),drag:0});
  Object.assign(b.tops[1],{x:0,z:0,vx:0,vz:0,drag:0});return b;
 }
 test('rail entry depends on local contact and signed tangential approach, not an opponent',()=>{
  for(const direction of [-1,1]){
-  const b=contact(.3,1,5*direction),a=b.tops[0],before=a.energy;
+  const b=contact(.3,.5,7*direction),a=b.tops[0],before=a.energy;
   stepBattle(b,.01);assert.equal(a.railActive,true);assert.equal(a.railDir,direction);
   assert.equal(b.events[0].phase,'enter');assert.ok(a.energy<before);
   const radial=(a.x*a.vx+a.z*a.vz)/Math.hypot(a.x,a.z),speed=Math.hypot(a.vx,a.vz);
@@ -23,7 +23,7 @@ test('rail entry depends on local contact and signed tangential approach, not an
 });
 test('a tooth-face strike rebounds once; a fresh aligned approach can mesh',()=>{
  const angle=.3,nx=Math.cos(angle),nz=Math.sin(angle);
- const battle=contact(angle,1,5),top=battle.tops[0],approach={x:top.x,z:top.z,vx:top.vx,vz:top.vz};
+ const battle=contact(angle,1,-5),top=battle.tops[0],approach={x:top.x,z:top.z,vx:top.vx,vz:top.vz};
  top.spin=angle+Math.PI/8;
  const speed=Math.hypot(top.vx,top.vz),energy=top.energy;
  stepBattle(battle,.01);
@@ -34,7 +34,7 @@ test('a tooth-face strike rebounds once; a fresh aligned approach can mesh',()=>
  const restored=JSON.parse(JSON.stringify(battle)),savedTop=restored.tops[0];
  Object.assign(savedTop,approach,{spin:angle});stepBattle(restored,.01);
  assert.equal(savedTop.railActive,false);assert.equal(restored.events.length,0);
- Object.assign(savedTop,{x:nx*(battle.railRadius-.35),z:nz*(battle.railRadius-.35),y:0});
+ Object.assign(savedTop,{x:nx*(battle.railRadius-.5),z:nz*(battle.railRadius-.5),y:0});
  stepBattle(restored,.01);
  Object.assign(savedTop,approach,{spin:angle,y:0});stepBattle(restored,.01);
  assert.equal(savedTop.railActive,true);
@@ -55,9 +55,9 @@ test('the main geometric ramp release in both directions and enforce cooldown',(
   stepBattle(b,.01);const e=b.events.find(e=>e.type==='rail');
   assert.equal(e.phase,'exit');assert.equal(e.reason,'port');assert.equal(e.exitIndex,railConfigForCount(2).exitAngles.indexOf(angle));
   assert.ok(a.x*a.vx+a.z*a.vz<0);assert.equal(a.railActive,false);
-  const reset=contact(.3).tops[0];Object.assign(a,{x:reset.x,z:reset.z,vx:reset.vx,vz:reset.vz,spin:reset.spin});
+  const reset=contact(.3).tops[0];Object.assign(a,{x:reset.x,z:reset.z,y:reset.y,vx:reset.vx,vz:reset.vz,spin:reset.spin});
   stepBattle(b,.01);assert.equal(a.railActive,false);
-  b.t=a.railCooldown+.01;Object.assign(a,{x:reset.x,z:reset.z,vx:reset.vx,vz:reset.vz,spin:reset.spin});
+  b.t=a.railCooldown+.01;Object.assign(a,{x:reset.x,z:reset.z,y:reset.y,vx:reset.vx,vz:reset.vz,spin:reset.spin});
   stepBattle(b,.01);assert.equal(a.railActive,true);
  }
 });
@@ -169,7 +169,7 @@ test('newly captured tops release at the very next toothless gap without a dwell
 test('the inward rail ramp preserve life, energy and the elimination list',()=>{
  for(const n of [2,10,16])for(const angle of railConfigForCount(n).exitAngles){
   const b=createBattle(players(n),21),a=b.tops[0],r=b.railRadius;
-  Object.assign(a,{x:r*Math.cos(angle),z:r*Math.sin(angle),vx:-7*Math.sin(angle),vz:7*Math.cos(angle),
+  Object.assign(a,{x:r*Math.cos(angle),z:r*Math.sin(angle),y:surfaceHeight(r*Math.cos(angle),r*Math.sin(angle),b.arenaRadius),vx:-7*Math.sin(angle),vz:7*Math.cos(angle),
    railActive:true,railDir:1,railEntered:0,railUntil:2,drag:0});
   for(let i=1;i<b.tops.length;i++)Object.assign(b.tops[i],{x:0,z:0,vx:0,vz:0,drag:0,alive:i===1});
   const before=a.energy;stepBattle(b,.01);

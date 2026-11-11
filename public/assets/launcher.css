@@ -1,0 +1,278 @@
+/* The housing, rack and grip share the player's material kit. */
+.ripcord {
+  --pull: 0px;
+  --travel: var(--pull);
+  isolation: isolate;
+}
+.launcher-body, .launcher-top, .cord-assembly, .cord-strip { position: absolute; }
+.launcher-body, .launcher-top, .cord-strip, #handle img {
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.launcher-body {
+  z-index: 3;
+  width: var(--body-width);
+  height: auto;
+  filter: drop-shadow(0 4px 3px #05080d65);
+}
+.launcher-top { z-index: 1; aspect-ratio: 1; }
+#loaded-top, #loaded-top canvas { display: block; width: 100%; height: 100%; }
+.cord-assembly {
+  z-index: 2;
+  width: var(--grip-width);
+  height: max(52px, calc(var(--grip-width) * .538));
+}
+.cord-strip {
+  top: 50%;
+  right: calc(100% - 4px);
+  width: var(--cord-length);
+  height: calc(var(--grip-width) * .092);
+  transform: translateY(-50%);
+}
+#handle {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#handle img { width: 100%; height: auto; filter: drop-shadow(0 3px 2px #02070c66); }
+#handle:disabled { opacity: 1; }
+#handle[aria-disabled="false"] { cursor: grab; }
+#handle:focus-visible { outline: 3px solid #a5edba; outline-offset: 5px; }
+.dragging #handle { cursor: grabbing; }
+#launch-cue { z-index: 4; pointer-events: none; }
+
+.ripcord-horizontal {
+  container-type: size;
+  --body-width: min(36.5cqw, 76cqh, 460px);
+  --body-left: 21%;
+  --grip-width: clamp(62px, 18cqw, 174px);
+  --brace: calc(-1 * var(--travel) * var(--brace-ratio, .4));
+  --stroke: 0px;
+  --cord-length: 45vw;
+  position: absolute;
+  inset: 0;
+  height: auto;
+  margin: 0;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: radial-gradient(ellipse at 44% 52%, #253649, #131f30 47%, #080f1c 85%);
+}
+.ripcord-horizontal .launcher-body {
+  left: var(--body-left);
+  top: 50%;
+  transform: translate(var(--brace), -50%);
+}
+.ripcord-horizontal .launcher-top {
+  left: calc(var(--body-left) + var(--body-width) * .19);
+  top: calc(50% + var(--body-width) * .21);
+  width: calc(var(--body-width) * .76);
+  transform: translate(var(--brace), -50%);
+}
+.ripcord-horizontal .cord-assembly {
+  left: calc(var(--body-left) + var(--body-width) * .868 - 2px);
+  top: 50%;
+  transform: translate(var(--travel), -50%);
+}
+.ripcord-horizontal .launcher-body, .ripcord-horizontal .cord-assembly,
+.ripcord-horizontal .launcher-top { transition: transform .2s ease-out, opacity .24s ease-out; }
+.ripcord-horizontal.dragging :is(.launcher-body,.cord-assembly,.launcher-top) { transition: none; }
+.ripcord-horizontal.released { --travel: var(--stroke); }
+.ripcord-horizontal.released .launcher-top {
+  transform: translate(12vw, 33svh) rotate(95deg) scale(.28);
+  opacity: 0;
+}
+
+.rotate-phone { display: none; }
+
+@media (orientation: portrait) {
+  body > .rotate-phone + main { display: none !important; }
+  body > .rotate-phone {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 22px;
+    background: #101b2a;
+    color: #f3f3eb;
+    text-align: center;
+  }
+  .rotate-phone::before {
+    content: "";
+    width: 56px;
+    height: 29px;
+    border: 2px solid #b5c5cf;
+    border-radius: 7px;
+    background: radial-gradient(circle at 8% 50%, #b5c5cf 1.3px, transparent 1.8px);
+  }
+  .rotate-phone p { margin: 0; font-size: 19px; font-weight: 650; }
+}
+
+/* The phone's short edge is the vertical space available during assembly. */
+@media (orientation: landscape) and (max-height: 600px) {
+  body:has(> .rotate-phone):has(#join-panel) main {
+    width: 100%;
+    max-width: 1060px;
+    padding: 10px max(20px,env(safe-area-inset-right)) 10px max(20px,env(safe-area-inset-left));
+  }
+  body:has(#assembly:not([hidden])) header { margin: 0; min-height: 28px; }
+  body:has(#assembly:not([hidden])) .identity { padding: 4px 0; }
+  #assembly { position: relative; padding-bottom: 8px; }
+  #assembly h1 { font-size: 23px; margin: 8px 0; }
+  #assembly #random-parts { position: absolute; right: 0; top: 0; width: auto; min-height: 36px; padding: 5px 14px; }
+  #part-rows { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+  #assembly .part-selector { grid-template-columns: 44px minmax(0,1fr) 44px; }
+  #assembly .part-view { height: clamp(62px,20svh,91px); }
+  #confirm-parts { min-height: 44px; margin-top: 6px; }
+  #join-panel { display: grid; grid-template-columns: minmax(0,.9fr) minmax(0,1fr); column-gap: 44px; align-content:center; flex: 1; }
+  #join-title { font-size: clamp(28px,4.6vw,42px); }
+  #join-panel .intro { grid-column: 1; line-height: 1.65; margin: 12px 0 0; }
+  #join-form { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+  #join-form input { height: 46px; }
+  #join-form .primary { min-height: 44px; margin-top: 12px; }
+  #join-error { grid-column: 2; }
+}
+
+/* The main game keeps its status and accessible standard-pull control beside the launcher. */
+body.launch-mode:has(#neutral) main { max-width: 1320px; padding: 12px clamp(12px,2vw,30px); }
+body.launch-mode:has(#neutral) :is(header,footer) { display: none; }
+body.launch-mode:has(#neutral) #player-panel {
+  display: grid;
+  grid-template-columns: minmax(155px, 1fr) minmax(0, 2.7fr);
+  grid-template-rows: auto auto auto auto 1fr;
+  column-gap: clamp(12px,2vw,24px);
+  align-content: center;
+  min-height: calc(100svh - 24px);
+  padding: 0;
+}
+body.launch-mode:has(#neutral) #player-panel > * { grid-column: 1; }
+body.launch-mode:has(#neutral) #player-panel > #launcher-screen {
+  grid-column: 2; grid-row: 1 / 10;
+  position: relative; inset: auto; min-height: 210px; overflow: hidden;
+  border-radius: 14px; background: #101b29;
+}
+body.launch-mode:has(#neutral) .identity { padding: 0 0 8px; }
+body.launch-mode:has(#neutral) .phase-copy { margin: 10px 0 4px; grid-row: 2; }
+body.launch-mode:has(#neutral) .phase-copy h1 { font-size: clamp(21px,3vw,32px); }
+body.launch-mode:has(#neutral) .phase-copy > p:last-child { min-height: 0; margin-bottom: 6px; }
+body.launch-mode:has(#neutral) .secondary { padding: 6px 10px; min-height: 44px; }
+body.launch-mode:has(#neutral) .fairness { margin: 4px 0; text-align: left; }
+#launcher-screen .gesture-label {
+  position: absolute; left: 12px; right: 12px; bottom: 7px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  color: #eef2f3; font-size: 13px; pointer-events: none;
+}
+#launcher-screen .gesture-label small { color: #bed0df; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ripcord :is(.launcher-body,.cord-assembly,.launcher-top) { transition: none; }
+  .ripcord-horizontal.released .launcher-top { transform: translate(var(--brace), -50%); }
+}
+
+/* Fit the completed launcher art into the existing red/blue tournament shell. */
+.ripcord-horizontal .launcher-body{background:none;border:0;border-radius:0;box-shadow:none;height:auto}
+.ripcord-horizontal .launcher-top{height:auto}
+.ripcord-horizontal .cord-strip{display:block;background:none;border:0;box-shadow:none}
+.ripcord-horizontal .cord-assembly{transform:translate(var(--travel),calc(-50% + var(--pull-y,0px)))}
+.ripcord-horizontal.dragging .cord-strip{visibility:hidden}
+.ripcord-horizontal .flexible-cord{opacity:0}
+.ripcord-horizontal.dragging .flexible-cord{opacity:1}
+.ripcord-horizontal .flexible-cord .cord-edge{stroke:#8c969d;stroke-width:12}
+.ripcord-horizontal .flexible-cord .cord-surface{stroke-width:10}
+.ripcord-horizontal .flexible-cord .cord-teeth{stroke:#56616a}
+.ripcord-horizontal .launch-orbit,.ripcord-horizontal .pull-track{display:none}
+@media(orientation:portrait){body:has(>.launch-screen-gate)>.rotate-phone{display:none!important}body:has(>.rotate-phone){overflow:hidden}body>.rotate-phone{z-index:20000}}
+@media(orientation:landscape) and (max-height:600px){
+ body:not(.launch-mode):has(>.rotate-phone) main{margin:0;border:0;min-height:100svh;padding:8px 20px}
+ body:has(>.rotate-phone) header{margin-bottom:8px;min-height:24px}
+ #join-panel{padding:0;gap:18px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ #join-panel .join-hero{grid-column:1;grid-row:1/4;height:280px;margin:0}
+ #join-form{grid-column:2;grid-row:1/4}
+ #join-panel .battle-title{font-size:32px}.battle-title strong{font-size:62px}
+ #assembly{padding:0}#assembly .title-ribbon{font-size:24px;min-height:38px;margin:0 0 6px;transform:none}
+ #assembly .title-ribbon small{font-size:20px}.assembly-intro{display:none}
+ #assembly #random-parts{position:static}.assembly-tools{margin:0 0 5px}
+ #part-rows{gap:10px}.part-row{height:157px;margin-bottom:0;padding:6px}
+ .part-row h2{font-size:12px}.part-row h2 small{font-size:12px}
+ .part-row output{position:static;display:block;text-align:center;font-size:10px}
+ #assembly .part-selector{height:75px;grid-template-columns:32px minmax(0,1fr) 32px}
+ #assembly .part-view{height:81px;margin-top:0}.part-description{font-size:10px;left:10px;right:10px;bottom:6px}
+ .combination{display:none}#confirm-parts{min-height:42px;font-size:22px;margin-top:6px}
+ .parts-note{margin:5px 0;font-size:10px}footer{margin-top:6px;padding-top:6px}
+}
+.ripcord-horizontal .cord-assembly{z-index:2}
+.ripcord-horizontal[data-kit=red] .cord-surface,.ripcord-horizontal[data-kit=navy] .cord-surface{stroke:#343c44}
+.ripcord-horizontal[data-kit=blue] .cord-surface{stroke:#e6e4d5}
+.ripcord-horizontal[data-kit=white] .cord-surface{stroke:#e5a934}
+.ripcord-horizontal[data-kit=black] .cord-surface{stroke:#8d99a4}
+/* Paired host retains its arena layout; launcher parts use the shared art proportions. */
+.feel-page .ripcord-horizontal .launcher-body{width:var(--body-width);height:auto}
+.feel-page .ripcord-horizontal .cord-assembly{width:var(--grip-width);height:max(52px,calc(var(--grip-width) * .538))}
+.feel-page .ripcord-horizontal .cord-strip{height:calc(var(--grip-width) * .092)}
+
+/* Match the static rack's molded face and raised teeth while it bends. */
+.ripcord-horizontal .flexible-cord{--rack-base:#dbdfd3;--rack-lit:#f2f0df;--rack-edge:#fffef1;--rack-shadow:#aebbb7}
+.ripcord-horizontal:is([data-kit=red],[data-kit=navy]) .flexible-cord{--rack-base:#3b4247;--rack-lit:#5a6268;--rack-edge:#98a1a4;--rack-shadow:#252b31}
+.ripcord-horizontal[data-kit=white] .flexible-cord{--rack-base:#eea91b;--rack-lit:#ffca48;--rack-edge:#ffe697;--rack-shadow:#c78012}
+.ripcord-horizontal[data-kit=black] .flexible-cord{--rack-base:#949fa1;--rack-lit:#c6d0ce;--rack-edge:#e9efea;--rack-shadow:#6b767b}
+.ripcord-horizontal .flexible-cord .cord-edge{stroke:var(--rack-shadow);stroke-width:calc(11 * var(--rack-unit))}
+.ripcord-horizontal .flexible-cord .cord-surface{stroke:var(--rack-lit);stroke-width:calc(8 * var(--rack-unit))}
+.ripcord-horizontal .flexible-cord .cord-teeth{fill:var(--rack-base);stroke:var(--rack-edge);stroke-width:calc(.5 * var(--rack-unit));stroke-dasharray:none}
+
+/* Mobile preparation stays portrait, including while the keyboard shrinks the viewport. */
+body.portrait-preparation:not(.preparation-landscape)>main{display:flex!important;max-width:520px;margin:auto;padding:16px 20px;min-height:100svh;flex-direction:column}
+body.preparation-landscape>main{display:none!important}
+body.portrait-preparation #join-panel{display:block;padding:0}
+body.portrait-preparation .join-hero{height:280px;margin:0 0 14px}
+body.portrait-preparation #join-form{display:block}
+body.portrait-preparation #part-rows{display:block}
+body.portrait-preparation .part-row{height:156px;margin-bottom:10px;padding:8px 10px}
+body.portrait-preparation #assembly .part-selector{height:92px;grid-template-columns:36px minmax(0,1fr) 36px}
+body.portrait-preparation #assembly .part-view{height:104px;margin-top:-8px}
+body.portrait-preparation .part-row output{position:absolute;top:9px;right:14px;font-size:11px}
+body.portrait-preparation .part-description{font-size:12px;bottom:8px;left:14px;right:14px}
+body.portrait-preparation #assembly .title-ribbon{min-height:60px;font-size:30px;margin:0 0 14px}
+body.portrait-preparation .assembly-intro{display:block}
+body.portrait-preparation .combination{display:grid}
+body.portrait-preparation #confirm-parts{min-height:64px;font-size:27px;margin-top:13px}
+body.portrait-preparation .parts-note{font-size:11px;margin-top:8px}
+
+body.portrait-preparation:not(.preparation-landscape){overflow-y:auto!important;overscroll-behavior:auto}
+
+body.desktop-preparation>main{display:flex!important}
+
+/* Broadcast launcher finish for the handset and test benches. */
+:is(.lab-page, .handset-page) {
+  --red-nylon: hue-rotate(311deg) saturate(4.5) brightness(.78);
+}
+:is(.lab-page, .handset-page) .ripcord-horizontal .launcher-body { content: url('/assets/launcher-body.svg#pearl'); }
+:is(.lab-page, .handset-page) .ripcord-horizontal #handle img {
+  content: url('/assets/launcher-loop.svg#amber');
+  filter: var(--red-nylon) drop-shadow(0 3px 3px #02070c85);
+}
+:is(.lab-page, .handset-page) .ripcord-horizontal .cord-strip {
+  content: url('/assets/launcher-rack.svg#amber');
+  filter: var(--red-nylon);
+}
+:is(.lab-page, .handset-page) .ripcord-horizontal[data-kit] .flexible-cord {
+  --rack-base:#b8152e; --rack-lit:#f63f51; --rack-edge:#fc8692; --rack-shadow:#700d21;
+}
+:is(.lab-page, .handset-page) .ripcord-horizontal[data-kit] .cord-surface { stroke: var(--rack-lit); }
+
+/* Match signal stays clear without intercepting the held ripcord. */
+.handset-page #launch-cue.shoot-signal {
+  color:#101728; background:#ffcf56; text-shadow:none;
+  font-size:clamp(36px,14svh,80px); font-weight:900; letter-spacing:-.03em;
+}

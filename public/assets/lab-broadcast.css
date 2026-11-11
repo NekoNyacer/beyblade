@@ -1,0 +1,208 @@
+/* Test consoles use the same tournament chassis as the host and projection. */
+body.lab-page {
+  margin: 0;
+  min-height: 100dvh;
+  padding: clamp(8px, 1.4vw, 24px);
+  color: var(--bc-ink);
+  background: radial-gradient(ellipse at 50% 0, #23303a, #111a22 44%, #070c10 100%) fixed;
+  font-family: "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+}
+.lab-shell { width: min(100%, 1520px); margin: 0 auto; }
+.lab-page .lab-mast {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start;
+  gap: 12px 22px; margin: 0; min-height: 60px; padding: 10px clamp(12px, 2vw, 32px);
+  border-radius: 6px 6px 0 0; border-bottom: 1px solid #455665;
+  background: linear-gradient(114deg, #0b1219, #19242e 55%, #101820 76%);
+}
+.lab-brand-link { display: inline-flex; align-items: center; min-height: 36px; text-decoration: none; }
+.lab-mast h1 {
+  margin: 0; padding-left: 18px; border-left: 1px solid #51616e;
+  color: var(--bc-ink); font: italic 900 clamp(19px, 2vw, 29px)/1.2 var(--bc-display);
+}
+.lab-mast nav { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.lab-page .lab-mast nav a, .lab-page #open-scene {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4em;
+  min-height: 38px; padding: 5px 12px; border: 1px solid #435768; border-radius: 3px;
+  box-shadow: inset 0 1px #ffffff12; background: var(--bc-button);
+  color: var(--bc-ink); font-size: 13px; font-weight: 700; text-decoration: none;
+}
+.lab-icon { display: inline-block; width: 1.15em; height: 1.15em; flex: none; fill: none; vertical-align: middle; }
+.lab-page :is(nav, .lab-controls, .scenario-actions) a:hover { border-color: #94a5b2; color: white; }
+.lab-page .lab-shell > main, body.pull-lab:not(.launch-mode) .lab-shell > main {
+  width: 100%; max-width: none; min-height: 0;
+  padding: clamp(12px, 1.5vw, 24px);
+}
+.lab-page h2, .lab-page h3 { color: var(--bc-ink); }
+.lab-shell :is(h2, .phone-share summary) { font-weight: 900; font-style: italic; }
+.lab-shell :is(.lab-intro, .join-help, #practice-status, #scenario-status, #lab-status, .pull-hint, .practice-note) {
+  font-size: 13px; line-height: 1.65; color: var(--bc-muted);
+}
+.lab-shell :is(button:not(:where(#handle, .pack, .cue-button)), select) {
+  min-height: 42px; border: 1px solid #546877; border-radius: 4px; background: var(--bc-button);
+  box-shadow: inset 0 1px #ffffff14; color: var(--bc-ink); font-weight: 700;
+}
+.lab-shell select option { color: #f4f6fa; background: #18212a; }
+.lab-shell button:not(:where(#handle, .pack, .cue-button)):enabled:hover { background: linear-gradient(#435565, #243542); }
+.lab-shell :is(#practice-start, #lab-start, #play-demo) {
+  color: #fff; background: var(--bc-confirm); border: 1px solid #66b779;
+}
+.lab-shell :is(#practice-start, #lab-start, #play-demo):enabled:hover {
+  background: linear-gradient(#3baa57, #1d7d37); border-color: #8bdb9c;
+}
+.lab-shell button:disabled { opacity: .55; }
+.lab-page :is(#preview-stage, .feel-arena, #lab-display) {
+  overflow: hidden; border-radius: 4px; border: 1px solid #4e606e; background: #0b1118;
+}
+.lab-page [hidden] { display: none !important; }
+.lab-page :is(.launch-screen-gate, .rotate-phone) {
+  background: radial-gradient(ellipse at 50% 25%, #23313c, #0a1015 70%);
+}
+.lab-page .launch-gate-content {
+  width: min(100%, 410px); padding: clamp(14px, 5vw, 30px);
+  border: 3px solid transparent; border-radius: 8px;
+  background: var(--bc-panel) padding-box, var(--bc-rim) border-box;
+}
+.lab-page .launch-gate-content h2 { color: var(--bc-ink); font-style: italic; }
+.lab-page .launch-gate-content > svg { height: 49px; stroke: #ebf1f7; }
+.lab-page .launch-gate-content button { border: 1px solid #66b779; border-radius: 4px; color: white; background: var(--bc-confirm); }
+.lab-page .launch-gate-content button:hover { background: #238039; }
+.lab-page :is(.lab-intro, .join-help, #lab-status) { margin: 8px 0 12px; }
+
+/* Mobile-operated test room */
+.launch-lab .launch-layout { grid-template-columns: minmax(0, 1fr) minmax(234px, 290px); gap: 14px; align-items: start; }
+.launch-lab .live-battle { grid-column: 1; grid-row: 1; }
+.launch-lab .launch-layout aside { grid-column: 2; grid-row: 1; padding: 16px; border: 1px solid var(--bc-line); }
+.launch-lab .launch-layout h2 { margin: 0 0 8px; font-size: 20px; }
+.launch-lab #lab-qr { width: min(100%, 164px); height: auto; padding: 5px; border-radius: 2px; margin: 14px auto; }
+.launch-lab #lab-network { min-height: 40px; padding: 5px 7px; }
+.launch-lab #lab-join, .pull-lab #feel-link { color: #b8d9f4; }
+.launch-lab #lab-display { display: block; height: clamp(430px, calc(100dvh - 211px), 860px); min-height: 0; }
+.launch-lab .battle-help { flex-wrap: wrap; gap: 12px 24px; margin-top: 12px; padding: 12px 15px; border: 1px solid var(--bc-line); border-radius: 4px; background: var(--bc-panel); }
+.launch-lab .battle-help strong { margin: 0; }
+.launch-lab #lab-start, .launch-lab #lab-new { width: 100%; }
+.launch-lab #lab-start { margin-top: 10px; min-height: 46px; }
+.launch-lab #lab-error:empty { display: none; }
+
+/* Free practice and pull instrumentation */
+.practice-lab .lab-shell > main, .pull-lab .lab-shell > main {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 32%); gap: 14px; align-items: start;
+}
+.practice-lab #preview-stage { grid-column: 1; grid-row: 1; height: clamp(400px, calc(100dvh - 146px), 900px); }
+.practice-lab .practice-launcher {
+  grid-column: 2; grid-row: 1; min-width: 0; display: grid; gap: 12px;
+  align-items: start; padding: clamp(12px, 1.5vw, 22px); margin: 0;
+}
+.practice-lab .practice-launcher :is(h2, h3) { margin: 0; }
+.practice-lab .practice-launcher h2 { font-size: 20px; }
+.practice-lab .practice-launcher h3 { font-size: 15px; padding-top: 12px; border-top: 1px solid var(--bc-line); }
+.practice-lab .lab-controls { display: grid; gap: 8px; }
+.practice-lab .lab-controls button { display: flex; gap: .6em; align-items: center; justify-content: center; }
+.practice-lab #practice-view[aria-pressed="true"] { background: #153650; border-color: #63a4cd; }
+.practice-lab .practice-launcher .ripcord { width: 100%; min-width: 0; border: 1px solid #3e4d5a; border-radius: 4px; }
+.practice-lab #practice-status { min-height: 3.3em; }
+.pull-lab .feel-arena { height: clamp(400px, calc(100dvh - 158px), 860px); min-height: 0; margin: 0; }
+.pull-lab .feel-controls { width: 100%; align-self: start; min-width: 0; padding: clamp(12px, 1.4vw, 22px); }
+.pull-lab #reset-pull { min-height: 38px; padding: 5px 10px; color: #f4f7f9; }
+.pull-lab .mechanism { margin: 0; background: #10171f; border: 1px solid #3f5161; border-radius: 3px; }
+.pull-lab .readings { gap: 9px; padding-top: 12px; }
+.pull-lab .readings > div { padding: 8px 9px; background: #0c141b; border-left: 2px solid #546a7a; }
+.pull-lab .readings :last-child { border-color: #ff3757; }
+.pull-lab .readings output { font-size: clamp(15px, 1.7vw, 24px); }
+.pull-lab .feel-arena { container-type: inline-size; }
+.pull-lab .arena-caption { inset: 40% 0 auto; display: flex; flex-wrap: nowrap; justify-content: space-between; gap: 8px; }
+.pull-lab .speed-plate {
+  display: grid; align-content: center; gap: 3px; min-width: 16%; color: white;
+  padding: 8px clamp(7px,1.3cqw,19px); border-block: 1px solid #d2354e;
+  background: linear-gradient(110deg,#a3132c 0%,#380f20ec 75%,#210c17ef);
+  clip-path: polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);
+}
+.pull-lab .speed-plate + .speed-plate {
+  text-align: right; border-color: #3289d7;
+  background: linear-gradient(250deg,#135ca2,#112848ec 70%,#111b29ee);
+  clip-path: polygon(10px 0,100% 0,100% 100%,0 100%,0 10px);
+}
+.pull-lab .speed-title { display: flex; align-items: center; gap: 5px; font-size: clamp(10px,1.5cqw,13px); font-weight: 700; color: white; }
+.pull-lab .speed-plate + .speed-plate .speed-title { justify-content: flex-end; }
+.pull-lab .speed-title b { padding: 1px 5px; background: #e52648; color: white; font: italic 900 clamp(13px,2.1cqw,20px)/1 var(--bc-display); }
+.pull-lab .speed-plate + .speed-plate b { background: #1679db; }
+.pull-lab .speed-value { white-space: nowrap; font: italic 900 clamp(20px,4.5cqw,42px)/1 var(--bc-display); font-variant-numeric: tabular-nums; }
+.pull-lab .speed-value small { font-size: .38em; }
+@container (max-width: 430px) {
+  .pull-lab .arena-caption { top: 6px; }
+  .pull-lab .speed-plate { padding: 4px 7px; }
+}
+.pull-lab #attempt { bottom: 10px; padding: 4px 9px; border-left: 2px solid #8e9eab; background: #091017e6; color: #fff; }
+.pull-lab .phone-share { margin: 0; padding: 13px 18px; }
+.pull-lab .phone-share summary { min-height: 32px; padding: 5px 0; color: var(--bc-ink); font-size: 16px; }
+.pull-lab .phone-share select { width: min(100%, 320px); }
+
+/* Reproducible scenarios and playback console */
+.diagnostics-lab #scene-nav { margin-bottom: 16px; gap: 6px; }
+.diagnostics-lab #scene-nav button {
+  transform: skewX(-10deg); border: 1px solid #526576; border-radius: 3px;
+  background: var(--bc-button); color: var(--bc-ink); font-size: 14px; padding: 7px 16px;
+}
+.diagnostics-lab #scene-nav button[aria-current="page"] { background: linear-gradient(120deg, #c4122d, #721426); border-color: #fb5068; }
+.diagnostics-lab .scenario-toolbar { padding: 10px 14px; border: 1px solid var(--bc-line); background: var(--bc-panel); border-radius: 4px; margin-bottom: 10px; }
+.diagnostics-lab .scenario-toolbar h2 { margin-bottom: 3px; }
+.diagnostics-lab .scenario-actions { flex-wrap: wrap; }
+.diagnostics-lab #open-scene { margin-left: 0; }
+.diagnostics-lab #scenario-status { margin: 10px 0; }
+.diagnostics-lab .arena-guide { gap: 10px 26px; margin-top: 10px; padding-top: 14px; }
+.diagnostics-lab .arena-guide strong { margin-bottom: 2px; }
+
+/* Audio desk */
+.audio-lab .page-heading { margin-bottom: 15px; }
+.audio-lab .page-heading h2 { margin-bottom: 4px; font-size: clamp(22px, 2.3vw, 32px); }
+.audio-lab .packs { margin-bottom: 18px; }
+.audio-lab .pack { border-radius: 3px; border-color: #455b6b; background: var(--bc-panel); }
+.audio-lab .pack[aria-pressed="true"] { background: linear-gradient(124deg, #561725, #24141d 70%); border-color: #ff5b74; box-shadow: inset 3px 0 #e91e40; }
+.audio-lab .pack[data-pack="metal"][aria-pressed="true"] { background: linear-gradient(124deg, #193b64, #111f30 72%); border-color: #5998dc; box-shadow: inset 3px 0 #2689fa; }
+.audio-lab .pack[data-pack="neon"][aria-pressed="true"] { background: linear-gradient(124deg, #353249, #161c25 72%); border-color: #a699c1; box-shadow: inset 3px 0 #a598c0; }
+.audio-lab .workspace { gap: 14px; }
+.audio-lab .cue-library { min-width: 0; padding: clamp(12px, 1.5vw, 24px); }
+.audio-lab .controls { padding: clamp(12px, 1.5vw, 22px); }
+.audio-lab .demo-stage { border: 1px solid #4a5762; border-top: 2px solid #ea2542; border-radius: 3px 3px 0 0; background: radial-gradient(ellipse at 50% 100%, #243442, #0b1219 76%); }
+.audio-lab .cue-group h3 { background: linear-gradient(105deg, #2b3b48, #17242d 76%); border-color: #425666; }
+.audio-lab .voice-note { max-width: none; }
+
+@media (max-width: 870px) {
+  .lab-page .lab-mast { gap: 8px 12px; }
+  .lab-mast h1 { padding-left: 11px; }
+  .launch-lab .launch-layout { grid-template-columns: minmax(0, 1fr) 230px; }
+  .lab-page #lab-display { height: clamp(340px, 54vw, 490px); }
+}
+@media (max-width: 700px) {
+  body.lab-page { padding: 5px; }
+  .lab-page .lab-mast { padding: 8px 10px; }
+  .lab-mast .broadcast-brand { font-size: 20px; }
+  .lab-page .lab-mast nav { width: 100%; margin-left: 0; }
+  .lab-page .lab-mast nav a { min-height: 36px; font-size: 12px; padding: 4px 8px; }
+  .lab-page .lab-shell > main, body.pull-lab:not(.launch-mode) .lab-shell > main { padding: 10px; }
+  .launch-lab .launch-layout, .practice-lab .lab-shell > main, .pull-lab .lab-shell > main { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+  .launch-lab .live-battle, .practice-lab #preview-stage { order: -1; }
+  .launch-lab #lab-display, .practice-lab #preview-stage { height: clamp(230px, 62vw, 450px); }
+  .launch-lab .battle-help { gap: 8px 15px; }
+  .launch-lab .launch-layout aside { padding: 12px; }
+  .pull-lab .feel-arena { height: clamp(220px, 56vw, 360px); }
+  .pull-lab .readings { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .pull-lab .phone-share { padding: 8px 12px; }
+  .diagnostics-lab .arena-guide { display: grid; }
+  .diagnostics-lab .arena-guide p { margin: 0; }
+  .audio-lab .packs { gap: 5px; }
+  .audio-lab .pack { padding: 9px 6px; }
+  .audio-lab .column-labels, .audio-lab .cue-row { grid-template-columns: minmax(0, 1fr) repeat(3, minmax(34px, 46px)); gap: 3px; }
+}
+@media (orientation: landscape) and (max-height: 550px) {
+  body.lab-page { padding: 3px; }
+  .lab-page .lab-mast { min-height: 44px; padding: 2px 10px; }
+  .lab-page .lab-mast nav { width: auto; margin-left: auto; }
+  .lab-mast h1 { font-size: 17px; }
+  .lab-mast .broadcast-brand { font-size: 18px; }
+  .practice-lab .lab-shell > main, body.pull-lab:not(.launch-mode) .lab-shell > main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 41%); padding: 7px; }
+  .practice-lab #preview-stage, .pull-lab .feel-arena { height: calc(100dvh - 77px); }
+  .pull-lab .feel-controls { padding: 7px 9px; }
+  .pull-lab .readings { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
+  .pull-lab .readings > div { padding: 4px 3px; }
+  .pull-lab .readings output { font-size: 12px; white-space: normal; }
+}

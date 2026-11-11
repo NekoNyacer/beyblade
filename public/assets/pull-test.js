@@ -1,18 +1,20 @@
+import {setLauncherKit,sizeWinder} from './launcher.js';
 import {FlexibleRipcord} from './flexible-ripcord.js';
 import {LaunchScreenGate} from './launch-screen.js';
 import {appendRipcordEvent} from './ripcord.js';
 import {measurePracticePull} from './pull-input.js';
+import {rpmText} from './spin-readout.js';
 if(matchMedia('(pointer:coarse)').matches||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){location.replace('/pull-phone'+location.search);}else{
 const [{Arena},{LauncherPreview}]=await Promise.all([import('./arena.js'),import('./parts.js')]);
 const $=id=>document.getElementById(id),arena=new Arena($('feel-arena')),preview=new LauncherPreview($('loaded-top'));
 if(arena.renderer){arena.renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));arena.renderer.shadowMap.enabled=false;}
-preview.set({blade:0,ratchet:0,bit:0},'#ef243d');
+preview.set({blade:0,ratchet:0,bit:0},'#ff486a');setLauncherKit($('ripcord'),'#ff486a');
 let practicePair=null,practiceSource=null;
 let gesture=null,stroke=1,locked=false,request=0,count=0,rearmTimer,frames=[],index=0,elapsed=0,last=performance.now();
 const screenGate=new LaunchScreenGate({onchange:ready=>{if(!ready)cancel();$('handle').setAttribute('aria-disabled',String(!ready||locked));}});screenGate.setActive(true);
 const flexibleCord=new FlexibleRipcord($('ripcord'));
 const setStatus=text=>$('feel-status').textContent=text;
-function size(){const box=$('ripcord'),assembly=box.querySelector('.cord-assembly'),body=box.querySelector('.launcher-body');stroke=Math.max(1,box.clientWidth-assembly.offsetLeft-assembly.offsetWidth-18);box.style.setProperty('--stroke',stroke+'px');box.style.setProperty('--cord-length',(assembly.offsetLeft+stroke-body.offsetLeft-body.offsetWidth+7)+'px');}
+function size(){stroke=sizeWinder($('ripcord'));}
 function cancel(){const old=gesture;gesture=null;if(old&&$('handle').hasPointerCapture(old.id))$('handle').releasePointerCapture(old.id);$('ripcord').classList.remove('dragging');if(!locked){$('ripcord').style.setProperty('--pull','0px');$('ripcord').style.setProperty('--pull-y','0px');}}
 function rearm(){locked=false;$('ripcord').classList.remove('released');$('ripcord').style.setProperty('--pull','0px');$('ripcord').style.setProperty('--pull-y','0px');$('handle').setAttribute('aria-disabled',String(!screenGate.ready));}
 async function launch(result){
@@ -45,11 +47,30 @@ $('handle').addEventListener('pointerup',event=>{if(event.pointerId!==gesture?.i
 $('handle').addEventListener('pointercancel',cancel);$('handle').addEventListener('lostpointercapture',cancel);
 $('handle').addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)&&!event.repeat){event.preventDefault();launch({power:.5,angle:0,speed:null});}});
 $('handle').addEventListener('click',event=>{if(event.detail===0)launch({power:.5,angle:0,speed:null});});
-$('reset-pull').onclick=()=>{request++;clearTimeout(rearmTimer);frames=[];index=0;cancel();rearm();arena.idle();for(const top of arena.tops.values())top.group.visible=false;setStatus('戰鬥場已清空，握住拉環再試。');};
+function renderSpeeds(frame) {
+  for (const id of ['pull', 'reference']) {
+    const value = rpmText(frame?.tops.find(top => top.id === id));
+    const readout = $(id + '-live-rpm');
+    if (readout.textContent !== value) readout.textContent = value;
+  }
+}
+$('reset-pull').onclick=()=>{request++;clearTimeout(rearmTimer);frames=[];index=0;cancel();rearm();arena.idle();for(const top of arena.tops.values())top.group.visible=false;renderSpeeds(null);setStatus('戰鬥場已清空，握住拉環再試。');};
 new ResizeObserver(()=>{cancel();size();}).observe($('ripcord'));
-function tick(now){const delta=Math.min(.1,(now-last)/1000);last=now;if(!document.hidden){elapsed+=delta;while(index<frames.length&&frames[index].t<=elapsed)arena.update(frames[index++]);}requestAnimationFrame(tick);}requestAnimationFrame(tick);
+function tick(now) {
+  const delta = Math.min(.1, (now - last) / 1000);
+  last = now;
+  if (!document.hidden) {
+    elapsed += delta;
+    const previous = index;
+    while (index < frames.length && frames[index].t <= elapsed) arena.update(frames[index++]);
+    if (index !== previous) renderSpeeds(frames[index - 1]);
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
 function showLaunch(packet){
  const data=packet.run,result=packet.input;request++;frames=[];index=0;arena.idle();arena.roster(data.players);frames=data.frames;elapsed=0;last=performance.now();arena.update(frames[index++]);
+ renderSpeeds(frames[0]);
  $('speed').textContent=result.speed===null?'標準':result.speed.toFixed(2)+' 趟/s';$('angle').textContent=(result.angle<-.5?'上 ':result.angle>.5?'下 ':'平 ')+Math.abs(result.angle).toFixed(1)+'°';
  $('velocity').textContent=data.initial.speed.toFixed(1)+' 場地/s';$('rpm').textContent=Math.round(data.initial.rpm)+' rpm';count=packet.count;$('attempt').textContent='第 '+count+' 次發射';setStatus('手機拉環已入場；可在手機繼續拉下一次。');
 }

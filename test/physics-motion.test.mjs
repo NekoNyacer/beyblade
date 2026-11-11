@@ -19,8 +19,8 @@ test('changing a distant opponent does not steer a top',()=>{
 test('head-on contacts have real normals, impulse, symmetric loss and unique timed events',()=>{
  const b=createBattle(players(2),123);
  delete b.eventSequence;delete b.hitTimes;
- Object.assign(b.tops[0],{x:-.45,z:0,vx:8,vz:0,energy:100,drag:0});
- Object.assign(b.tops[1],{x:.45,z:0,vx:-8,vz:0,energy:100,drag:0});
+ Object.assign(b.tops[0],{x:-.45,z:0,y:.4,vy:0,vx:8,vz:0,energy:100,drag:0});
+ Object.assign(b.tops[1],{x:.45,z:0,y:.4,vy:0,vx:-8,vz:0,energy:100,drag:0});
  stepBattle(b);
  const hit=b.events.find(e=>e.type==='hit');
  assert.ok(hit);assert.equal(hit.aId,'0');assert.equal(hit.bId,'1');
@@ -95,13 +95,13 @@ test('live duels produce repeated central encounters beyond the opening clash',(
  assert.ok(repeatedDuels>=16,`at least two separate central encounters in ${repeatedDuels}/24 duels`);
 });
 
-test('live launches keep moving and colliding through seconds 10–15 before slowing down',()=>{
+test('measured medium launches keep moving and colliding through seconds 10–15 before slowing down',()=>{
  for(const count of [2,10,16]){
   const middle={speedSum:0,spinSum:0,samples:0},late={speedSum:0,spinSum:0,samples:0};
   let middleHits=0;
   for(const seed of [7,55,123]){
    const entrants=players(count);
-   const room={phase:'ready',players:entrants,round:{playerIds:entrants.map(p=>p.id),seed}};
+   const room={phase:'ready',players:entrants,round:{playerIds:entrants.map(p=>p.id),seed,pulls:Object.fromEntries(entrants.map(p=>[p.id,.5]))}};
    start(room);
    const battle=room.battle;
    while(!battle.done&&battle.t<20){
@@ -172,22 +172,22 @@ test('late wall and top impacts take more spin head-on than in a glancing hit or
 });
 
 
-test('a top lands on the exterior shoulder and a saved sunken top regains that surface',()=>{
+test('tops regain the correct shoulder or catch floor outside the crest',()=>{
  const rail=railConfigForCount(2),r=rail.arenaRadius+.30;
  const deckHeight=rail.rimHeight-.085; // Halfway along the panel from +.12 to +.48.
  assert.ok(Math.abs(shoulderHeight(r,0,rail.arenaRadius)-deckHeight)<1e-9);
  for(const angle of rail.ringOutAngles){
   assert.equal(shoulderHeight(r*Math.cos(angle),r*Math.sin(angle),rail.arenaRadius),null);
  }
- for(const [y,vy] of [[1.8,-2],[.18,0]]){
+ for(const [angle,floor] of [[0,deckHeight],[rail.ringOutAngles[0],rail.pocketFloor]])for(const [y,vy] of [[1.8,-2],[.18,0]]){
   const b=createBattle(players(2),7),top=b.tops[0];
-  Object.assign(top,{x:r,z:0,y,vy,vx:0,vz:0});
+  Object.assign(top,{x:r*Math.cos(angle),z:r*Math.sin(angle),y,vy,vx:0,vz:0,pocketCooldown:1});
   Object.assign(b.tops[1],{x:0,z:0,y:0,vx:0,vz:0});
   for(let i=0;i<40;i++){
-   stepBattle(b,.01);assert.ok(top.y>=deckHeight-1e-9);
+   stepBattle(b,.01);assert.ok(top.y>=floor-1e-9);
    assert.equal(top.pocketActive,false);
   }
-  assert.ok(Math.abs(top.y-deckHeight)<1e-9);assert.equal(top.vy,0);
+  assert.ok(Math.abs(top.y-floor)<1e-9);assert.equal(top.vy,0);
  }
 });
 
@@ -207,13 +207,15 @@ test('a flight into any external well impacts its wall and can rebound over the 
  }
 });
 
-test('a weak airborne top sinks and settles in an external well before elimination',()=>{
+test('a weak airborne top lands on the shallow tray and settles before elimination',()=>{
  const b=createBattle(players(2),3),a=b.tops[0],angle=Math.PI/4,r=b.arenaRadius+.03;
  Object.assign(a,{x:Math.cos(angle)*r,z:Math.sin(angle)*r,y:1.5,vy:0,vx:Math.cos(angle)*.3,vz:Math.sin(angle)*.3,energy:16,angularSpeed:96,drag:0});
  Object.assign(b.tops[1],{x:0,z:0,y:0,vx:0,vz:0,energy:10,drag:0});
  const events=[];let minimumY=Infinity,sawSettling=false;
  while(!b.done&&b.t<10){stepBattle(b);events.push(...b.events);minimumY=Math.min(minimumY,a.y);if(a.alive&&a.energy===0)sawSettling=true;assert.ok(Math.hypot(a.x,a.z)<=b.arenaRadius+.61);}
- assert.ok(minimumY<0&&sawSettling);assert.equal(a.outReason,'pocket');assert.equal(a.energy,0);assert.equal(a.angularSpeed,0);assert.equal(b.winnerId,'1');assert.equal(events.filter(e=>e.type==='out'&&e.id==='0').length,1);assert.equal(events.filter(e=>e.type==='pocket'&&e.phase==='exit').length,0);
+ const rail=railConfigForCount(2);
+ assert.equal(minimumY,rail.pocketFloor);assert.ok(rail.pocketDepth>0&&rail.pocketDepth<.5);
+ assert.ok(sawSettling);assert.equal(a.outReason,'pocket');assert.equal(a.energy,0);assert.equal(a.angularSpeed,0);assert.equal(b.winnerId,'1');assert.equal(events.filter(e=>e.type==='out'&&e.id==='0').length,1);assert.equal(events.filter(e=>e.type==='pocket'&&e.phase==='exit').length,0);
  const done=structuredClone(b);stepBattle(b);assert.deepEqual(b,done);
 });
 
@@ -221,7 +223,7 @@ test('seeded duels collide and excess launch speed increases real over-crest fli
  const totals=[];
  for(const power of [.5,1]){
   let hits=0,enters=0,exits=0,stalls=0;
-  for(let seed=1;seed<=30;seed++){
+  for(let seed=1;seed<=300;seed++){
    const b=createBattle(players(2),seed,{'0':power,'1':.5});
    while(!b.done&&b.t<35){stepBattle(b);for(const e of b.events){assert.notEqual(e.type,'ringout');if(e.type==='hit')hits++;if(e.type==='pocket'&&e.phase==='enter')enters++;if(e.type==='pocket'&&e.phase==='exit')exits++;if(e.type==='out'&&e.reason==='pocket')stalls++;}}
    assert.ok(b.done);assert.equal(b.eliminated.length,1);

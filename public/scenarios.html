@@ -1,7 +1,34 @@
 <!doctype html>
-<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>極速戰鬥盤｜戰鬥陀螺測試</title><link rel="stylesheet" href="/assets/main.css"><link rel="stylesheet" href="/assets/scenarios.css"></head>
-<body class="scenarios-page"><header class="scenario-header"><a href="/">戰鬥陀螺</a><span>互動測試 · 本機預覽</span></header>
-<main><div class="scenario-heading"><div><h1>極速戰鬥盤</h1><p>沿齒輪圈加速，從上方出口衝向中央。</p></div><a href="/" class="host-link">開啟主持控制台</a></div>
-<nav id="scene-nav" aria-label="測試情境"></nav><section aria-labelledby="scene-title"><div class="scenario-toolbar"><div><h2 id="scene-title">雙人激戰</h2><p id="scene-description"></p></div><div class="scenario-actions"><button id="play-pause">暫停</button><button id="restart">重新發射</button><button id="sound-toggle">開啟音效</button><a id="open-scene" target="_blank" rel="noopener">放大觀看 ↗</a></div></div>
-<div id="preview-stage"><iframe id="scene-frame" title="戰鬥陀螺實際 3D 測試" allow="fullscreen"></iframe></div><p id="scenario-status" role="status">準備載入戰鬥盤…</p></section>
-<div class="arena-guide"><p><strong>綠色齒軌</strong>位於坡頂，沿圈加速後從上方出口衝向中央。</p><p><strong>透明護罩</strong>攔住外飛的陀螺。</p><p><strong>外圍空洞</strong>正常行走不會落坑，飛越碗緣才會掉入。</p></div></main><script type="module" src="/assets/scenarios.js"></script></body></html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>自由對戰測試｜CathayBlade</title>
+  <link rel="icon" href="/assets/broadcast-tree.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="/assets/launcher.css">
+  <link rel="stylesheet" href="/assets/scenarios.css">
+<link rel="stylesheet" href="/assets/launch-screen.css">
+  <link rel="stylesheet" href="/assets/broadcast-kit.css">
+  <link rel="stylesheet" href="/assets/lab-broadcast.css">
+</head>
+<body class="scenarios-page lab-page practice-lab">
+  <div id="rotate-phone" class="rotate-phone" role="status"><p>請將裝置轉為橫向</p></div>
+  <div class="lab-shell broadcast-shell">
+  <header class="lab-mast">
+    <a class="lab-brand-link" href="/" aria-label="CathayBlade 主持控制台"><span class="broadcast-brand"><img src="/assets/cathayblade.svg" alt="CathayBlade"></span></a>
+    <h1>自由對戰測試</h1>
+    <nav aria-label="測試導覽"><a href="/scenarios-diagnostics.html">固定情境檢查</a><a id="phone-controller" href="/launch-test">手機控制器</a><a class="lab-back" href="/#settings"><svg class="lab-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m7-7-7 7 7 7"/></svg>主持設定</a></nav>
+  </header>
+  <main>
+
+    <aside class="practice-launcher broadcast-panel"><h2>場地控制</h2><div class="lab-controls"><button id="practice-start" type="button" disabled><svg class="lab-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 4 14 8-14 8z" fill="currentColor" stroke="none"/></svg>開始測試</button><button id="practice-reset" type="button"><svg class="lab-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8a8 8 0 1 1-1 7m1-12v5h5"/></svg>重置場地</button><button id="practice-view" type="button" aria-pressed="false" disabled><svg class="lab-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="3.5"/></svg>切換俯視角</button></div><h3>手動拉環</h3>
+      <div id="ripcord" class="ripcord ripcord-horizontal"></div>
+      <p id="practice-status" role="status">正在準備戰鬥盤…</p><button type="button" id="sound-toggle" disabled>開啟音效</button>
+    </aside>
+    <div id="preview-stage"><iframe id="scene-frame" title="即時雙人陀螺對戰"></iframe></div>
+  </main>
+  </div>
+  <script type="module" src="/assets/scenarios.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "purpose": "Replace the clearly labeled local TTS reference with original performed voiceovers after a voice-generation service or voice actor is available.",
+  "script": "Three! Two! One! Gooooo... SHOOT!",
+  "timing": { "three": 0, "two": 1, "one": 2, "go": 3, "shoot": 5 },
+  "sharedDirection": "Original English-speaking arena announcer. Competitive, friendly, explosive energy. Clearly intelligible numbers. Sustain the vowel in GO for about 1.5 seconds, leave a short breath, then a sharp percussive SHOOT. No music, crowd, distortion or reverb in the delivered dry vocal. Do not imitate any named actor, franchise announcer, or existing recording. Export 44.1 or 48 kHz WAV, separate cue files plus full phrase.",
+  "packs": [
+    { "id": "arena", "direction": "Confident mid-low register, athletic sports-announcer projection, broad chest resonance, energetic crescendo through the countdown, triumphant shouted SHOOT without harsh screaming." },
+    { "id": "metal", "direction": "Lower register, focused mechanical arena host, restrained gritty texture, firm short countdown punches, controlled powerful sustained GO, weighty clipped SHOOT." },
+    { "id": "neon", "direction": "Bright lively register, fast expressive arcade tournament host, playful lift on each number, ecstatic sustained GO, crisp enthusiastic SHOOT." }
+  ]
+}

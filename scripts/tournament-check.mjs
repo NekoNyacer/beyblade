@@ -6,7 +6,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 
 const output=path.resolve('.qa/tournament');mkdirSync(output,{recursive:true});
-const dataDir=mkdtempSync(path.join(output,'event-')),app=createApp({port:0,dataDir});await app.listen();
+const dataDir=mkdtempSync(path.join(output,'event-')),app=createApp({port:0,host:'127.0.0.1',dataDir});await app.listen();
 const base=`http://127.0.0.1:${app.server.address().port}`;
 const executablePath=process.env.CHROME_PATH||['C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(existsSync);
 const browser=await chromium.launch({executablePath,headless:true});
@@ -17,10 +17,27 @@ async function tab(viewport,event,route='/'){
  if(event)await context.addInitScript(event=>localStorage.setItem('beyblade-host',JSON.stringify(event)),event);
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));await page.goto(base+route);return page;
 }
+async function waitForState(check,timeout=12000){const end=Date.now()+timeout;while(!check()){if(Date.now()>end)throw Error('Timed out: '+check);await new Promise(resolve=>setTimeout(resolve,10));}}
+const launchTimings=[];
 async function result(host,room){
+ await host.locator('#tab-match').click();
  await host.locator('[data-action="start"]').click();
- await host.waitForFunction(()=>document.querySelector('#phase-heading').textContent==='準備發射');
- room.round.countdownAt=Date.now()-5001;room.round.shootAt=Date.now()-1;room.round.startsAt=room.round.shootAt;room.round.deadline=Date.now()+1200;
+ await waitForState(()=>room.phase==='countdown');
+ const round=room.round;
+ assert.ok(round.countdownAt>Date.now()+3000,'normal tournament retains its four-second introduction');
+ assert.equal(round.shootAt-round.countdownAt,3000);
+ assert.equal(round.deadline-round.shootAt,1200);
+ assert.equal(round.startsAt,round.deadline);
+ assert.equal(room.battle,null,'no battle during VS/countdown');
+ await waitForState(()=>room.phase==='shoot');
+ assert.ok(Date.now()>=round.shootAt);
+ assert.equal(room.battle,null,'SHOOT opens input before physics starts');
+ assert.equal(round.pulledIds.length,0);
+ await waitForState(()=>room.phase==='running');
+ assert.equal(round.startsAt,round.deadline,'missing phones use the complete common window');
+ assert.deepEqual(round.autoReleasedIds,round.playerIds);
+ assert.ok(room.battle.tops.every(top=>top.launchPower===.5));
+ launchTimings.push({countdownMs:round.shootAt-round.countdownAt,sharedWindowMs:round.startsAt-round.shootAt,players:round.playerIds.length});
  await host.waitForFunction(()=>document.querySelector('#phase-heading').textContent==='激戰中');
  for(let i=0;i<1000&&!room.battle.done;i++)stepBattle(room.battle);
  assert.ok(room.battle.done);
@@ -38,16 +55,19 @@ try{
  await host.waitForFunction(()=>document.querySelectorAll('#schedule [data-match-id]').length===4);
  assert.equal(room.matches.filter(m=>m.playerIds.length===1).length,1);
  assert.equal(await host.locator('#schedule .bracket-round').count(),4);
- assert.ok(await host.locator('#schedule .bracket-links path').count()>0);
+ await host.locator('#tab-schedule').click();
+ await host.waitForFunction(()=>document.querySelectorAll('#schedule .bracket-links path').length>0);
  const first=room.round.matchId,winner=await result(host,room);
  await display.locator('#display-schedule').waitFor({state:'visible',timeout:15000});
  assert.ok((await display.locator('#display-bracket').textContent()).includes(winner));
  const winnerFeeds=await host.locator('#schedule [data-bracket-sources]').evaluateAll((els,id)=>els.filter(el=>JSON.parse(el.dataset.bracketSources).includes(id)).map(el=>el.textContent),first);
  assert.ok(winnerFeeds.some(text=>text.includes(winner)));
+ await host.locator('#tab-schedule').click();
  await host.locator('#schedule').scrollIntoViewIfNeeded();
  await host.screenshot({path:path.join(output,'desktop.png'),fullPage:true});
  await display.screenshot({path:path.join(output,'display.png'),fullPage:true});
  const mobile=await tab({width:390,height:844},event);
+ await mobile.locator('#tab-schedule').click();
  await mobile.locator('#schedule [data-match-id]').first().waitFor();
  await mobile.screenshot({path:path.join(output,'mobile.png'),fullPage:true});
  assert.ok(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -55,15 +75,20 @@ try{
  await mobile.locator('.bracket-viewport').evaluate(el=>el.scrollLeft=el.scrollWidth);
  assert.ok(await mobile.locator('.bracket-viewport').evaluate(el=>el.scrollLeft>0));
  await mobile.close();
+ await host.locator('#tab-match').click();
  while(room.phase!=='finished'){
   await host.locator('[data-action="advance"]').click();await host.locator('[data-action="start"]').waitFor();await result(host,room);
  }
  assert.equal(room.matches.filter(m=>m.playerIds.length===2).length,6);
+ await display.locator('#result .champion-trophy').waitFor({state:'visible'});
+ assert.equal(await display.locator('#display-schedule').isVisible(),false);
+ await display.locator('#result-bracket-toggle').focus();await display.locator('#result-bracket-toggle').click();
  await display.locator('#display-schedule').waitFor({state:'visible'});
+ await host.locator('#tab-schedule').click();
  await host.locator('#schedule .is-champion .winner').waitFor();
  const champion=room.players.find(p=>p.id===room.championId).name;
  assert.ok((await host.locator('#schedule .is-champion').textContent()).includes(champion));
- await host.reload();await host.locator('#schedule .is-champion .winner').waitFor();
+ await host.reload();await host.locator('#tab-schedule').click();await host.locator('#schedule .is-champion .winner').waitFor();
  assert.ok((await host.locator('#schedule .is-champion').textContent()).includes(champion));
  await host.screenshot({path:path.join(output,'champion.png'),fullPage:true});
  await display.screenshot({path:path.join(output,'display-champion.png'),fullPage:true});
@@ -72,7 +97,7 @@ try{
  for(const n of [5,16]){
   const e=await post('/api/create',{mode:'tournament'});
   for(let i=0;i<n;i++)await post('/api/join',{roomId:e.roomId,accessToken:e.accessToken,name:'測試選手 '+(i+1)});
-  const h=await tab({width:1440,height:1000},e);await h.locator('[data-action="prepare"]').click();await h.locator('#schedule [data-match-id]').first().waitFor();
+  const h=await tab({width:1440,height:1000},e);await h.locator('[data-action="prepare"]').click();await h.locator('#tab-schedule').click();await h.locator('#schedule [data-match-id]').first().waitFor();
   if(n===5)assert.equal(await h.locator('#schedule .is-draw').count(),1);
   if(n===16){
    assert.equal(app.rooms.get(e.roomId).matches.length,8);
@@ -87,6 +112,6 @@ try{
   await h.close();
  }
  assert.deepEqual(errors,[]);
- const summary={passed:true,realSevenPlayerGames:6,oddSeed:true,automaticFeeds:true,hostAndDisplaySync:true,reloadRetainsChampion:true,mobileContainedScroll:true,maxProjectionFits:true,errors};
+ const summary={passed:true,launchTimings,realSevenPlayerGames:6,oddSeed:true,automaticFeeds:true,hostAndDisplaySync:true,reloadRetainsChampion:true,mobileContainedScroll:true,maxProjectionFits:true,errors};
  writeFileSync(path.join(output,'results.json'),JSON.stringify(summary,null,2));console.log(JSON.stringify(summary));
 }finally{await browser.close();await app.close();}

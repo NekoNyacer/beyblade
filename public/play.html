@@ -3,58 +3,73 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#10131a">
-  <title>選手拉環 · 旋風競技場</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0b1019">
+  <title>選手控制器｜CathayBlade</title>
+  <link rel="icon" href="/assets/broadcast-tree.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/play.css">
+  <link rel="stylesheet" href="/assets/launch-screen.css">
+  <link rel="stylesheet" href="/assets/flexible-ripcord.css">
+  <link rel="stylesheet" href="/assets/launcher.css">
+  <link rel="stylesheet" href="/assets/broadcast-kit.css">
+  <link rel="stylesheet" href="/assets/handset-broadcast.css">
   <script type="module" src="/assets/play.js"></script>
-<link rel="stylesheet" href="/assets/launch-screen.css"><link rel="stylesheet" href="/assets/flexible-ripcord.css"></head>
-<body>
-  <main>
+</head>
+<body class="handset-page">
+  <main class="broadcast-shell">
     <header>
-      <span class="wordmark"><svg class="mark-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 3h25l-5 26H0Z" fill="currentColor"/><path d="m18 7-10 11h7l-2 8 12-13h-8Z" fill="white"/></svg><span>戰鬥陀螺 <small>PLAYER CONTROL</small></span></span>
+      <span class="broadcast-brand"><img src="/assets/cathayblade.svg" alt="CathayBlade"></span>
       <span id="connection" class="connection" role="status">尚未連線</span>
     </header>
     <section id="join-panel" aria-labelledby="join-title">
       <div class="join-hero">
-        <h1 id="join-title" class="battle-title"><span>SPINNING TOP</span><strong>BATTLE</strong><span class="sr-only">戰鬥陀螺，上場對決！</span></h1>
-        <div class="hero-art" aria-hidden="true"><span class="hero-orbit orbit-one"></span><span class="hero-orbit orbit-two"></span><img id="join-top-art" src="/assets/art/top-000.png" alt="" fetchpriority="high" decoding="async"><span class="hero-spark spark-one"></span><span class="hero-spark spark-two"></span></div>
+        <h1 id="join-title" class="title-ribbon"><span>選手入場</span><small>PLAYER ENTRY</small></h1>
+        <div class="hero-art" aria-hidden="true"><img id="join-top-art" src="/assets/art/top-000.png" alt="" fetchpriority="high" decoding="async"></div>
       </div>
       <form id="join-form">
-        <label for="name" class="title-ribbon"><span>選手名稱</span><small>PLAYER NAME</small></label>
-        <p class="intro">輸入名字，組裝你的對戰陀螺。</p>
-        <input id="name" name="name" maxlength="16" autocomplete="nickname" required placeholder="輸入你的名字" aria-describedby="name-hint">
-        <p id="name-hint" class="hint">最多 16 字，會顯示在現場大螢幕。</p>
-        <button id="join-button" class="primary" type="submit"><span id="join-button-label">加入對戰</span><svg class="button-icon" viewBox="0 0 36 28" aria-hidden="true"><path d="m4 4 10 10L4 24M19 4l10 10-10 10"/></svg></button>
+        <label for="name">選手名稱</label>
+        <input id="name" name="name" maxlength="16" autocomplete="nickname" required placeholder="輸入你的名字">
+        <button id="join-button" class="primary broadcast-action" type="submit"><span id="join-button-label">加入對戰</span><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 7 7-7 7"/></svg></button>
       </form>
       <p id="join-error" class="error" role="alert"></p>
     </section>
     <section id="player-panel" hidden aria-label="選手控制">
       <section id="assembly" aria-labelledby="assembly-title">
-        <h1 id="assembly-title" class="title-ribbon"><span>選擇零件</span><small>SELECT PARTS</small></h1>
-        <p class="assembly-intro">左右切換零件，組裝你的對戰陀螺。</p>
-        <div class="assembly-tools"><span>攻擊環 + 棘輪 + 軸心</span><button id="random-parts" class="secondary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h3c4 0 7 12 11 12h4m-4-4 4 4-4 4M3 18h3c1.8 0 3.4-2.4 5-5M14 9c1-2 2-3 3-3h4m-4-4 4 4-4 4"/></svg>隨機組裝</button></div>
-        <div id="part-rows"></div>
-        <div class="combination" aria-label="目前選擇的零件組合">
-          <div id="combination-preview" aria-hidden="true"></div>
-          <div class="combination-info"><h2>你的組合 <small>COMBINATION</small></h2><output id="combination-summary" aria-live="polite" aria-atomic="true"></output></div>
+        <div class="assembly-tools">
+          <h1 id="assembly-title" class="title-ribbon"><span>組裝與發射</span><small>ASSEMBLY</small></h1>
+          <button id="random-parts" class="secondary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h3c4 0 7 12 11 12h4m-4-4 4 4-4 4M3 18h3c1.8 0 3.4-2.4 5-5M14 9c1-2 2-3 3-3h4m-4-4 4 4-4 4"/></svg>隨機組裝</button>
         </div>
-        <p class="parts-note">遊戲內模擬效果，非實物測試數據</p>
-        <button id="confirm-parts" class="primary" type="button"><span>確認組合</span><svg class="button-icon" viewBox="0 0 32 28" aria-hidden="true"><path d="m3 14 8 8L29 4"/></svg></button>
+        <div class="assembly-stage">
+          <div id="part-rows"></div>
+          <div class="assembly-finish">
+            <div class="combination" aria-label="目前選擇的零件組合">
+              <div class="mounted-preview" aria-hidden="true">
+                <div id="combination-preview"></div>
+                <img class="mounted-rack" src="/assets/launcher-rack.svg#amber" alt="">
+                <img class="mounted-grip" src="/assets/launcher-loop.svg#amber" alt="">
+                <img class="mounted-housing" src="/assets/launcher-body.svg#pearl" alt="">
+              </div>
+              <div class="combination-info"><h2>你的組合 <small>COMBINATION</small></h2><output id="combination-summary" aria-live="polite" aria-atomic="true"></output></div>
+            </div>
+            <button id="confirm-parts" class="primary broadcast-action" type="button"><span>確認組裝</span><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 12 6 6L21 6"/></svg></button>
+            <p class="parts-note">遊戲內模擬效果，非實物測試數據</p>
+          </div>
+        </div>
         <p id="assembly-status" role="status"></p>
       </section>
       <div id="launcher-screen" hidden>
         <h1 id="phase-title" class="sr-only">握住拉環，向右抽出</h1>
-        <div class="launch-heading"><strong class="title-ribbon"><span>準備發射</span><i>LAUNCH</i></strong><p>握住拉環，向右抽到底</p></div>
+        <div class="launch-heading"><strong class="title-ribbon"><span>準備發射</span><i>LAUNCH</i></strong><span class="broadcast-brand"><img src="/assets/cathayblade.svg" alt="CathayBlade"></span></div>
         <output id="launch-cue" aria-live="polite" aria-atomic="true"></output>
-        <div id="ripcord" class="ripcord">
+        <div id="ripcord" class="ripcord ripcord-horizontal">
           <div class="launch-orbit" aria-hidden="true"></div>
           <div class="pull-track" aria-hidden="true"><svg viewBox="0 0 240 100" preserveAspectRatio="none"><path d="m36 18 32 32-32 32m60-64 32 32-32 32m60-64 32 32-32 32"/></svg></div>
           <div class="launcher-top" aria-hidden="true"><div id="loaded-top"></div></div>
-          <div class="launcher-body" aria-hidden="true"><span></span></div>
+          <img class="launcher-body" data-part="body" src="/assets/launcher-body.svg" alt="" draggable="false">
           <div class="cord-assembly">
-            <div class="cord-strip" aria-hidden="true"></div>
+            <img class="cord-strip" data-part="rack" src="/assets/launcher-rack.svg" alt="" draggable="false">
             <button id="handle" type="button" aria-label="握住拉環向右抽到底；鍵盤按 Enter 或空白鍵發射" aria-disabled="true">
-              <svg viewBox="0 0 180 180" aria-hidden="true"><defs><linearGradient id="grip-metal" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#ff9b9e"/><stop offset=".14" stop-color="#ff4050"/><stop offset=".48" stop-color="#ce071d"/><stop offset=".72" stop-color="#7e0518"/><stop offset="1" stop-color="#f12c40"/></linearGradient><linearGradient id="grip-edge" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd6d7"/><stop offset=".3" stop-color="#ff5e68"/><stop offset=".7" stop-color="#a0061c"/><stop offset="1" stop-color="#ff7280"/></linearGradient></defs><path d="M17 69h27v42H17L4 101V79Z" fill="#c50820" stroke="#ff6673" stroke-width="2"/><path fill="url(#grip-metal)" stroke="url(#grip-edge)" stroke-width="4" fill-rule="evenodd" d="m90 7 32 6 26 20 18 28 7 29-7 32-18 26-26 19-32 6-31-6-27-19-19-26L7 90l6-29 19-28 27-20Zm0 31a52 52 0 1 0 0 104 52 52 0 0 0 0-104Z"/><circle cx="90" cy="90" r="58" fill="none" stroke="#ff6872" stroke-width="3"/><circle cx="90" cy="90" r="51" fill="none" stroke="#850417" stroke-width="5"/><path d="m59 13 6 14m57-14-6 14m32 6-11 13m29 15-16 6m16 55-15-6m-3 32-12-12m-14 31-6-16m-57 16 6-16m-33-3 12-12m-31-14 16-6m-16-55 16 6m3-34 12 13" fill="none" stroke="#a00a20" stroke-width="4"/></svg>
+              <img data-part="loop" src="/assets/launcher-loop.svg" alt="" draggable="false">
             </button>
           </div>
         </div>
@@ -64,7 +79,8 @@
       <p id="player-error" class="error" role="alert"></p>
       <button id="retry" class="secondary" type="button" hidden>重新連線</button>
     </section>
-    <footer><span id="room-label">現場連線</span><span>請保持此頁開啟</span></footer>
+    <footer><span id="room-label">現場連線</span></footer>
   </main>
+  <div class="gate-brand"><span class="broadcast-brand"><img src="/assets/cathayblade.svg" alt="CathayBlade"></span></div>
 </body>
 </html>

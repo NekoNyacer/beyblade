@@ -1,0 +1,10 @@
+/* CathayBlade tournament broadcast: shared material and identity. */
+@font-face{font-family:"Battle Display";src:url("/assets/fonts/BarlowCondensed-BlackItalic.ttf") format("truetype");font-style:italic;font-weight:900;font-display:swap}
+:root{--bc-bg:#080d12;--bc-face:#101922;--bc-line:#405365;--bc-ink:#f4f6fa;--bc-muted:#b1bfcd;--bc-red:#f11c3e;--bc-blue:#168aff;--bc-green:#2aaf52;--bc-panel:linear-gradient(150deg,#16232e 0%,#0c151d 58%,#101a22 100%);--bc-rim:linear-gradient(119deg,#979fa7 0%,#ccd0d5 4%,#39444f 6%,#87909b 13%,#26323c 28%,#7f8995 50%,#c9cdd2 59%,#39434f 73%,#a0abb4 89%,#38414b 100%);--bc-button:linear-gradient(#2b3a47,#182530 58%,#1e2d38);--bc-confirm:linear-gradient(#2d994a,#17772e 58%,#19672c);--bc-display:"Battle Display","Microsoft JhengHei",sans-serif}
+.broadcast-brand{display:inline-flex;align-items:center;gap:.3em;white-space:nowrap;text-decoration:none;color:#f8fafc;font:italic 900 1.5rem/1 var(--bc-display);letter-spacing:.012em}
+.broadcast-brand img{display:block;box-sizing:content-box;height:1.22em;width:auto;max-width:none;object-fit:contain;flex:none;padding:0;background:none;border-radius:0}
+.broadcast-shell{border:4px solid transparent;border-radius:10px;background:linear-gradient(145deg,#101922,#080c11 64%,#0d161f) padding-box,var(--bc-rim) border-box;box-shadow:inset 0 0 0 1px #05090d,inset 0 2px 1px #c8d1d044,0 12px 35px #0005;color:var(--bc-ink)}
+.broadcast-panel{border:1px solid var(--bc-line);border-radius:5px;background:var(--bc-panel);box-shadow:inset 0 1px #ffffff0b}
+.broadcast-action{display:inline-flex;align-items:center;justify-content:center;background:var(--bc-confirm);color:white;border:1px solid #65bb75;border-radius:4px;padding:.65em 1em;text-decoration:none;font-weight:800}
+.broadcast-action:hover{background:#238039}
+.broadcast-shell :is(a,button,input,select,summary,[tabindex]):focus-visible{outline:3px solid #ffdb7c;outline-offset:3px}

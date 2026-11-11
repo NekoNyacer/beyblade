@@ -1,9 +1,74 @@
-import {scenes} from './fixtures.js';
-const $=id=>document.getElementById(id);let current='duel',paused=false;
-$('scene-nav').innerHTML=scenes.map(s=>`<button data-scene="${s.id}">${s.label}</button>`).join('');
-function render(push=false){const scene=scenes.find(s=>s.id===current)||scenes[0];current=scene.id;for(const b of document.querySelectorAll('[data-scene]'))b.setAttribute('aria-current',b.dataset.scene===current?'page':'false');$('scene-title').textContent=scene.label;$('scene-description').textContent=scene.description;const url='/display?preview='+current;$('scene-frame').contentWindow.location.replace(url);$('open-scene').href=url;paused=false;$('play-pause').textContent='暫停';$('play-pause').disabled=current==='result';$('sound-toggle').textContent='開啟音效';$('scenario-status').textContent='同一套戰鬥模擬 · 固定種子可重播比較 · 不建立活動房間';history[push?'pushState':'replaceState'](null,'','/scenarios?scene='+current);fit();}
-$('scene-nav').onclick=e=>{const b=e.target.closest('[data-scene]');if(b){current=b.dataset.scene;render(true);}};
-$('restart').onclick=()=>render();$('play-pause').onclick=()=>{paused=!paused;$('scene-frame').contentWindow.postMessage({type:'scenario-control',action:paused?'pause':'resume'},location.origin);$('play-pause').textContent=paused?'繼續':'暫停';};
-$('sound-toggle').onclick=async()=>{const button=$('scene-frame').contentDocument?.getElementById('sound');if(button?.onclick){await button.onclick();$('sound-toggle').textContent=button.textContent.includes('已開啟')?'音效已開啟':'重試音效';}};
-function fromUrl(){current=new URLSearchParams(location.search).get('scene')||'duel';if(current==='ringout')current='pocket';render();}window.addEventListener('popstate',fromUrl);
-function fit(){const el=$('preview-stage');el.classList.toggle('scaled-display',el.clientWidth<900);el.style.setProperty('--preview-scale',String(el.clientWidth/1280));}new ResizeObserver(fit).observe($('preview-stage'));fromUrl();
+import {LaunchScreenGate} from './launch-screen.js';
+if(new URLSearchParams(location.search).has('scene'))location.replace('/scenarios-diagnostics.html'+location.search);
+import { createLauncher } from './horizontal-launcher.js';
+
+const $ = id => document.getElementById(id);
+const frame = $('scene-frame');
+let ready = false, reloading = false, rearmTimer;
+const gate = new LaunchScreenGate({onchange: available => {
+  if (!available) launcher.cancel();
+  syncControls();
+}});
+const launcher = createLauncher($('ripcord'), {canPull: () => gate.ready && ready && !reloading, onPull: launch});
+launcher.setParts({blade: 0, ratchet: 0, bit: 0}, '#ff486a');
+launcher.resize();
+gate.setActive(false);
+
+function syncControls() {
+  launcher.sync();
+  $('practice-start').disabled = !gate.ready || !ready || reloading;
+  $('practice-view').disabled = !ready;
+  $('sound-toggle').disabled = !ready;
+}
+
+function launch(power, angle) {
+  if (!gate.ready || !ready || reloading) return;
+  reloading = true;
+  launcher.release();
+  syncControls();
+  frame.contentWindow.postMessage({type: 'practice-launch', power, angle}, location.origin);
+  $('practice-status').textContent = '已發射。再拉一次即可開始新一局。';
+  rearmTimer = setTimeout(() => {
+    launcher.reset();
+    reloading = false;
+    syncControls();
+  }, 450);
+}
+
+window.addEventListener('message', event => {
+  if (event.origin !== location.origin || event.source !== frame.contentWindow) return;
+  if (event.data?.type === 'practice-ready') {
+    ready = true;
+    syncControls();
+    $('practice-status').textContent = '握住拉環向右抽到底。拉動的速度與方向決定發射力道及傾角。';
+  } else if (event.data?.type === 'practice-error') {
+    ready = false;
+    syncControls();
+    $('practice-status').textContent = '無法載入戰鬥盤，請重新整理。';
+  }
+});
+$('practice-start').onclick = () => launch(.5, 0);
+$('practice-reset').onclick = () => {
+  ready = false;
+  reloading = false;
+  clearTimeout(rearmTimer);
+  launcher.reset();
+  syncControls();
+  $('practice-view').setAttribute('aria-pressed', 'false');
+  $('sound-toggle').textContent = '開啟音效';
+  $('practice-status').textContent = '正在重置場地…';
+  frame.contentWindow.location.replace('/display?practice=1');
+};
+$('practice-view').onclick = () => {
+  const overhead = $('practice-view').getAttribute('aria-pressed') !== 'true';
+  $('practice-view').setAttribute('aria-pressed', String(overhead));
+  frame.contentWindow.postMessage({type: 'practice-view', view: overhead ? 'overhead' : 'broadcast'}, location.origin);
+};
+$('sound-toggle').onclick = async () => {
+  const sound = frame.contentDocument?.getElementById('sound');
+  if (sound?.onclick) {
+    await sound.onclick();
+    $('sound-toggle').textContent = sound.textContent;
+  }
+};
+frame.src = '/display?practice=1';

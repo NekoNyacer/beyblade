@@ -16,8 +16,8 @@ export class PracticeSessions{
   }
   if(path==='/api/practice-session/pull'){
    const s=this.get(b.session,b.token,'phone');if(!s.hosts.size)throw Error('主畫面尚未連線，請先在電腦開啟測試頁。');
-   const run=launchPractice(b.power,b.angle,'paired-'+(s.count+1));
    if(b.speed!==null&&(!Number.isFinite(b.speed)||b.speed<0||b.speed>1000))throw Error('拉速數據無效，請重新拉動。');
+   const run=launchPractice(b.power,b.angle,'paired-'+(s.count+1),b.speed===null);
    const packet={type:'launch',count:++s.count,input:{speed:b.speed,angle:b.angle,power:b.power},run};s.latest=packet;
    for(const res of s.hosts)this.send(res,packet);
    return {count:s.count,initial:run.initial};

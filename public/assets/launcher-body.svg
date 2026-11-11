@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 270" aria-hidden="true" focusable="false">
+  <style>
+    svg:has(#red:target) { --shell-deep:#660d1d; --shell-shadow:#a41126; --shell-base:#d51d32; --shell-lit:#fa3745; --shell-edge:#ff8990; }
+    svg:has(#pearl:target) { --shell-deep:#777e83; --shell-shadow:#adb3b3; --shell-base:#e2e4df; --shell-lit:#f6f5ef; --shell-edge:#fffef9; }
+    svg:has(#graphite:target) { --shell-deep:#15191c; --shell-shadow:#30353a; --shell-base:#535b61; --shell-lit:#899196; --shell-edge:#cdd2d3; }
+  </style>
+  <view id="red"/><view id="pearl"/><view id="graphite"/>
+  <defs>
+    <linearGradient id="bp-shell-wall" x1="0" y1="0" x2=".9" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="var(--shell-lit,#1575bf)"/>
+      <stop offset=".26" stop-color="var(--shell-base,#075b9f)"/>
+      <stop offset=".74" stop-color="var(--shell-shadow,#064783)"/>
+      <stop offset="1" stop-color="var(--shell-deep,#073561)"/>
+    </linearGradient>
+    <linearGradient id="bp-shell-top" x1=".15" y1="0" x2=".70" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="var(--shell-edge,#469bdb)"/>
+      <stop offset=".10" stop-color="var(--shell-lit,#1575bf)"/>
+      <stop offset=".48" stop-color="var(--shell-base,#075b9f)"/>
+      <stop offset=".80" stop-color="var(--shell-base,#075b9f)"/>
+      <stop offset="1" stop-color="var(--shell-shadow,#064783)"/>
+    </linearGradient>
+    <linearGradient id="bp-shell-near" x1=".8" y1="0" x2=".28" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="var(--shell-lit,#1575bf)"/>
+      <stop offset=".46" stop-color="var(--shell-base,#075b9f)"/>
+      <stop offset=".81" stop-color="var(--shell-base,#075b9f)"/>
+      <stop offset="1" stop-color="var(--shell-lit,#1575bf)"/>
+    </linearGradient>
+    <linearGradient id="bp-shell-port" x1=".2" y1="0" x2=".65" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#121d25"/>
+      <stop offset=".54" stop-color="#25323b"/>
+      <stop offset="1" stop-color="#0a151e"/>
+    </linearGradient>
+    <linearGradient id="bp-shell-panel" x1="0" y1="1" x2="1" y2=".1" gradientUnits="objectBoundingBox">
+      <stop stop-color="var(--panel-shadow,#202227)"/>
+      <stop offset=".24" stop-color="var(--panel-base,#35383a)"/>
+      <stop offset=".62" stop-color="var(--panel-base,#35383a)"/>
+      <stop offset="1" stop-color="var(--panel-lit,#54595c)"/>
+    </linearGradient>
+    <linearGradient id="bp-shell-cap" x1="0" y1=".34" x2="1" y2=".28" gradientUnits="objectBoundingBox">
+      <stop stop-color="#151c23"/>
+      <stop offset=".22" stop-color="#373d42"/>
+      <stop offset=".55" stop-color="#64696a"/>
+      <stop offset=".76" stop-color="#34383b"/>
+      <stop offset="1" stop-color="#1f2428"/>
+    </linearGradient>
+    <clipPath id="bp-shell-print-mask"><path d="M95 2H180L184 6V49Q184 51 181 51H95Z"/></clipPath>
+    <g id="bp-shell-print-row">
+      <circle cx="96.0" cy="1.00" r="0.36"/>
+      <circle cx="100.7" cy="3.65" r="0.52"/>
+      <circle cx="105.4" cy="1.00" r="0.66"/>
+      <circle cx="110.1" cy="3.65" r="0.78"/>
+      <circle cx="114.8" cy="1.00" r="0.90"/>
+      <circle cx="119.5" cy="3.65" r="1.01"/>
+      <circle cx="124.2" cy="1.00" r="1.12"/>
+      <circle cx="128.9" cy="3.65" r="1.23"/>
+      <circle cx="133.6" cy="1.00" r="1.33"/>
+      <circle cx="138.3" cy="3.65" r="1.44"/>
+      <circle cx="143.0" cy="1.00" r="1.54"/>
+      <circle cx="147.7" cy="3.65" r="1.64"/>
+      <circle cx="152.4" cy="1.00" r="1.74"/>
+      <circle cx="157.1" cy="3.65" r="1.84"/>
+      <circle cx="161.8" cy="1.00" r="1.94"/>
+      <circle cx="166.5" cy="3.65" r="2.03"/>
+      <circle cx="171.2" cy="1.00" r="2.13"/>
+      <circle cx="175.9" cy="3.65" r="2.22"/>
+      <circle cx="180.6" cy="1.00" r="2.32"/>
+      <circle cx="185.3" cy="3.65" r="2.41"/>
+    </g>
+    <mask id="bp-shell-shoe-window">
+      <path fill="white" d="M0 0H320V270H0Z"/>
+      <path d="M108 193H148L153 188 156 187 148 198H109L105 195Z"/>
+    </mask>
+    <linearGradient id="bp-shell-polish" x1="0" y1="0" x2=".25" y2="1">
+      <stop stop-color="white" stop-opacity=".23"/>
+      <stop offset=".44" stop-color="white" stop-opacity=".055"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <g mask="url(#bp-shell-shoe-window)">
+  <!-- Lower molding and its stepped accessory shoe. -->
+  <path fill="url(#bp-shell-wall)" d="M63 29Q67 24 76 24L239 28Q246 28 251 34L258 51 267 73 271 103 279 116Q286 129 282 143L271 157 267 174Q263 184 254 191L246 199 231 201 222 197 183 199 164 216Q160 222 152 223L99 224Q93 223 89 218L84 206 72 205Q61 203 57 194L48 177 46 154 45 143 33 138 30 121 34 79Q36 64 43 56Z"/>
+  <path fill="var(--shell-deep,#073561)" d="M32 117 40 127 51 129 55 151 53 165 48 159 45 144 34 140Q30 136 30 127ZM60 183 74 193 86 191 92 198 99 216 155 216 169 205 183 195 221 194 231 197 247 194 244 200 231 203 221 199 183 201 164 218Q159 224 151 225L99 226Q91 226 88 219L83 209 72 208Q62 205 60 197Z"/>
+  <path fill="url(#bp-shell-port)" d="M34 121Q38 118 43 121L51 125 53 137 47 142 34 138Z"/>
+  <path fill="var(--shell-shadow,#064783)" d="M46 125 53 131 53 138 47 141 47 132 34 127 34 123Z"/>
+  <path fill="var(--shell-deep,#073561)" d="M264 121 280 120 285 130 282 141 271 149 261 143Z"/>
+  <path fill="url(#bp-shell-port)" d="M272 124 281 125 284 131 281 137 270 145 268 140Z"/>
+  <path fill="var(--shell-edge,#469bdb)" opacity=".62" d="M274 122 280 121 285 129 283 131 280 126 273 126Z"/>
+
+  <!-- Upper shoulder, with low grip scallops along its perimeter. -->
+  <path fill="var(--shell-shadow,#064783)" d="M34 73 56 24Q58 18 66 17L77 16 85 20 112 20 119 14 130 14 136 19 147 17 152 11 208 11Q218 11 224 15L241 21Q249 24 251 34L255 58 248 66 72 75 64 86 48 88Z"/>
+  <path fill="url(#bp-shell-top)" d="M48 62 61 24Q62 20 68 19L78 19 86 23 114 22 120 16 128 16 134 21 147 20 154 14 209 14Q217 14 224 17L239 23Q247 26 249 34L252 55 247 61 91 67 76 68 71 76 53 76Z"/>
+  <path fill="url(#bp-shell-polish)" d="M67 22 77 22 86 26 113 25 120 18 128 18 134 23 149 22 155 16 209 16Q217 16 224 19L238 24Q244 27 245 31L249 49 241 49 236 32Q234 28 230 27L217 24 158 21 146 28 133 29 125 26 116 32 88 32 78 28 65 30Z"/>
+  <path fill="url(#bp-shell-wall)" d="M38 63Q44 52 52 48L58 48 63 63 72 67 75 75 68 86 47 92 34 81Z"/>
+  <path fill="var(--shell-lit,#1575bf)" d="M40 66Q42 59 49 56L55 56 60 68 67 71 65 76 48 80 38 76Z"/>
+  <path fill="var(--shell-edge,#469bdb)" opacity=".60" d="M63 23Q65 19 70 19H77L86 23 114 22 119 17 114 25 85 27 76 23ZM155 14 209 13Q215 13 222 16L235 21 218 17 156 17 149 22 141 23 148 19Z"/>
+  <path fill="var(--shell-shadow,#064783)" d="M88 24 118 24 111 36 95 37 90 41 85 38 93 31ZM146 22 155 16 160 17 155 23 147 27 140 26Z"/>
+  <path fill="var(--shell-deep,#073561)" opacity=".55" d="M96 35 109 33 114 26 119 24 114 34 110 37 95 38 90 42 87 40Z"/>
+  <path d="M200 23 214 23 221 25M200 27 213 27 219 29M202 31 211 31 216 33" fill="none" stroke="var(--shell-shadow,#064783)" stroke-width="1.35" stroke-linecap="round"/>
+  <path fill="var(--shell-shadow,#064783)" d="M74 67 246 57 250 64 256 78 87 83Z"/>
+
+  <!-- Single printed metal-look face insert, inset between the two blue rails. -->
+  <g transform="matrix(1 0 .3 1 67 61)">
+    <path fill="#172029" d="M0 0H178L185 5 187 46 184 55 6 57 -2 48 -3 8Z"/>
+    <path fill="url(#bp-shell-panel)" d="M4 1H177L183 5 184 46 181 52H6L1 47 0 9Z"/>
+    <g clip-path="url(#bp-shell-print-mask)" fill="var(--panel-print,#f4f2e9)">
+      <use href="#bp-shell-print-row" y="0.0"/>
+      <use href="#bp-shell-print-row" y="5.3"/>
+      <use href="#bp-shell-print-row" y="10.6"/>
+      <use href="#bp-shell-print-row" y="15.9"/>
+      <use href="#bp-shell-print-row" y="21.2"/>
+      <use href="#bp-shell-print-row" y="26.5"/>
+      <use href="#bp-shell-print-row" y="31.8"/>
+      <use href="#bp-shell-print-row" y="37.1"/>
+      <use href="#bp-shell-print-row" y="42.4"/>
+      <use href="#bp-shell-print-row" y="47.7"/>
+    </g>
+    <g fill="#121619">
+      <path d="M65 14 70 12 75 15 75 19 69 21 65 18Z"/>
+      <path d="M58 31 62 29 68 31 69 35 64 38 59 36Z"/>
+    </g>
+    <path d="M66 18 69 20 74 18M60 35 64 37 68 34" fill="none" stroke="#666c6b" stroke-width=".9"/>
+    <path fill="url(#bp-shell-cap)" d="M1 7 8 3 20 5 23 9 22 47 18 51 5 50 0 44Z"/>
+    <path fill="#12191e" d="M21 7 24 10 23 46 19 50 22 44Z"/>
+    <text x="30" y="45" fill="var(--panel-print,#f4f2e9)" font-family="Arial,sans-serif" font-size="4.3" font-weight="700" letter-spacing=".42">WINDER LAUNCHER</text>
+    <path fill="none" stroke="#c6cdce" stroke-opacity=".5" stroke-width="1" d="M4 2H175L181 5M2 10 4 6 10 4"/>
+  </g>
+
+  <!-- Near shoulder, molded thumb notches and front wall. -->
+  <path fill="var(--shell-shadow,#064783)" d="M80 116 254 111 263 106 272 110 278 120 276 133 268 148 263 163 254 173 239 177 226 177 219 184 186 184 173 181 160 186 148 188 129 181 115 183 106 177 92 177 80 168 71 145Z"/>
+  <path fill="url(#bp-shell-near)" d="M83 117 254 112 263 108Q269 106 274 114L278 121 273 132 264 146 260 159 252 169 239 174 223 173 216 180 186 180 173 176 159 182 150 184 131 177 115 179 106 173 93 174 85 169 74 145Z"/>
+  <path fill="var(--shell-lit,#1575bf)" d="M83 117 254 112 263 108 269 109 258 116 89 122 80 144 78 140Z"/>
+  <path fill="url(#bp-shell-polish)" d="M89 121 253 116 260 114 255 120 95 127 88 137 84 137Z"/>
+  <path fill="var(--shell-edge,#469bdb)" opacity=".65" d="M85 118 139 117 133 119 88 120 83 130Z"/>
+  <path fill="var(--shell-base,#075b9f)" d="M256 117 269 112 274 120 268 132 259 145 255 156 246 164 229 168 221 168 230 160 245 155 249 141Z"/>
+  <path fill="var(--shell-shadow,#064783)" d="M85 143 98 136 112 137 117 131 129 132 129 144 120 151 105 151 99 158 88 157ZM144 141 155 132 168 130 181 135 176 145 163 146 155 155 145 154 139 149Z"/>
+  <path fill="var(--shell-deep,#073561)" opacity=".66" d="M89 147 99 141 113 142 120 135 127 136 126 140 119 147 105 147 97 155 90 155ZM145 143 157 135 168 134 175 136 172 141 161 142 151 151 144 150Z"/>
+  <path d="M89 159 99 160 106 153 121 153M145 156 155 157 164 148 175 147" fill="none" stroke="var(--shell-lit,#1575bf)" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M236 122 248 120 253 118M235 126 249 124 254 121M234 130 247 129 252 127" fill="none" stroke="var(--shell-shadow,#064783)" stroke-width="1.45" stroke-linecap="round"/>
+
+  <!-- Port wall and accessory rail: the window beneath the raised shoe is open. -->
+  <path fill="url(#bp-shell-wall)" d="M34 84 48 89 65 85 70 77 84 114 76 140 85 159 98 171 107 173 109 184 98 198 81 201 69 197 56 184 50 166 52 155 58 147 49 129 37 124 31 115Z"/>
+  <path fill="var(--shell-base,#075b9f)" d="M34 87 49 93 65 89 69 84 78 111 70 135 60 142 53 125 39 119 34 112Z"/>
+  <path fill="url(#bp-shell-wall)" fill-rule="evenodd" d="M93 174 104 164 154 165 173 173 174 193 157 213 97 214 88 200 87 184ZM105 182 103 190 109 197 147 197 156 187 154 181Z"/>
+  <path fill="var(--shell-shadow,#064783)" fill-rule="evenodd" d="M90 183 101 172 154 173 169 180 169 194 155 209 100 210 90 198ZM105 182 102 190 108 198 148 198 159 187 156 181Z"/>
+  <path fill="var(--shell-deep,#073561)" d="M106 183 153 183 155 186 149 192 111 192 106 196 102 190Z"/>
+  <path fill="var(--shell-edge,#469bdb)" opacity=".6" d="M103 172 153 172 165 178 154 176 105 176 95 183 93 183Z"/>
+  <path fill="var(--shell-lit,#1575bf)" d="M102 209 154 207 168 193 162 202 156 210 102 212Z"/>
+  <path d="M177 187 186 184 216 184 227 178 242 178M66 183 72 190 82 194" fill="none" stroke="var(--shell-deep,#073561)" stroke-opacity=".48" stroke-width="1.65" stroke-linecap="round"/>
+  </g>
+</svg>

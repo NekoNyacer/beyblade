@@ -48,3 +48,11 @@ The repository includes start-game.cmd and npm start for local rehearsal. PUBLIC
 
 Automated local core tests cover deterministic physics, 2–16 player brackets, collision symmetry, pull bounds/deadlines, permissions, rate-sized payloads, reconnect and recovery. Browser tests use installed Chrome,10 independent phone contexts, actual pointer drag, projector/host UI, winner consistency and delayed swipe lockout. Runtime dependency audit is recorded separately. Docker build, actual GCP HTTP/WS, public TLS, VM firewall and external device tests must be performed by the deployment worker; do not infer them from local tests.
 Reverse-proxy access logs should omit query strings: invitation links and WebSocket URLs carry capability tokens. Keep all access logs private. The admin fragment is removed client-side and is not sent in HTTP requests. New hardened deployments should start a fresh event instead of importing pre-hardening host browser state.
+
+## Existing public-event compatibility
+
+The existing GCP site deliberately sets `ALLOW_PUBLIC_CREATE=1`. This opt-in keeps direct room creation and room-token host sockets, without browser pairing. It preserves `PUBLIC_MODE=1`, the protected admin endpoints, same-origin checks, invitation/player/host secrets, a global five-new-rooms-per-minute limit, and the thirty-room cap. Do not remove this flag during updates. Without it, the default protected pairing behavior above still applies.
+
+The Docker image must include `launch-practice.mjs` and `practice-sessions.mjs`. These compatibility changes were first deployed as an isolated overlay on b91896b and are now maintained in the repository, with automated regression coverage.
+
+Use the existing single-instance Docker service and private persistent data mount. Before replacing it, keep the previous container/image and a private backup of the complete data and runtime configuration. Build and health-check a candidate against a copy of the data first. Preserve the gateway, inn services, network, runtime secrets and original event files. Stop only the Beyblade service for the final data snapshot/switch, and retain a normal rollback path.

@@ -21,3 +21,13 @@ export function measureRipcord(points,stroke){
   const angle=clamp(Math.atan2(Math.abs(last.y-first.y),last.x-first.x)*180/Math.PI,0,25);
   return{accepted:true,power:clamp((speed-1)/6,0,1),speed,distance,angle};
 }
+
+export function applyLaunchPull(top,power,angle){
+ // Correct the current motion once; network delay must never rewind contacts or position.
+ const strength=(power-.5)*2,rotation=angle*Math.PI/180*.2*(top.orbitDir||1),scale=1+strength*.1;
+ const vx=top.vx,vz=top.vz;
+ top.vx=(vx*Math.cos(rotation)-vz*Math.sin(rotation))*scale;
+ top.vz=(vx*Math.sin(rotation)+vz*Math.cos(rotation))*scale;
+ top.energy=Math.max(.01,top.energy+strength*11.4);
+ top.launchPower=power;top.launchTilt=angle*Math.PI/180;
+}

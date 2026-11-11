@@ -55,7 +55,7 @@ test('the three bit gears have distinct finite rail acceleration',()=>{
  const speeds=[];
  for(let i=0;i<3;i++){
   const b=createBattle([{id:'a',parts:selection('bit',i)},{id:'b'}],77),a=b.tops[0],angle=.3,r=b.railRadius;
-  Object.assign(a,{x:r*Math.cos(angle),z:r*Math.sin(angle),spin:angle,vx:-5*Math.sin(angle),vz:5*Math.cos(angle),drag:0});
+  Object.assign(a,{x:r*Math.cos(angle),z:r*Math.sin(angle),spin:angle,vx:5*Math.sin(angle),vz:-5*Math.cos(angle),drag:0});
   Object.assign(b.tops[1],{x:0,z:0,y:0,vx:0,vz:0,drag:0});stepBattle(b,.01);assert.equal(a.railActive,true);speeds.push(Math.hypot(a.vx,a.vz));
  }
  assert.ok(speeds[0]>speeds[1]&&speeds[1]>speeds[2]);

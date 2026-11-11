@@ -1,0 +1,588 @@
+{
+  "version": 1,
+  "sampleRate": 44100,
+  "channels": 1,
+  "format": "16-bit PCM WAV",
+  "packs": [
+    {
+      "id": "arena",
+      "label": "A 熱血競技場",
+      "description": "厚實拳擊感、明亮確認音、寬闊勝利號角。"
+    },
+    {
+      "id": "metal",
+      "label": "B 鋼鐵衝擊",
+      "description": "偏寫實金屬、機械扣鎖、低沉硬派衝擊。"
+    },
+    {
+      "id": "neon",
+      "label": "C 霓虹派對",
+      "description": "清脆電子、彈跳節奏、明快彩色勝利音。"
+    }
+  ],
+  "cues": [
+    {
+      "id": "ui_hover",
+      "label": "UI 移動",
+      "category": "UI"
+    },
+    {
+      "id": "ui_confirm",
+      "label": "UI 確認",
+      "category": "UI"
+    },
+    {
+      "id": "ui_back",
+      "label": "UI 返回",
+      "category": "UI"
+    },
+    {
+      "id": "ui_ready",
+      "label": "準備完成",
+      "category": "UI"
+    },
+    {
+      "id": "countdown_3",
+      "label": "倒數 3",
+      "category": "倒數與配音"
+    },
+    {
+      "id": "countdown_2",
+      "label": "倒數 2",
+      "category": "倒數與配音"
+    },
+    {
+      "id": "countdown_1",
+      "label": "倒數 1",
+      "category": "倒數與配音"
+    },
+    {
+      "id": "announcer_go",
+      "label": "Gooooo",
+      "category": "倒數與配音"
+    },
+    {
+      "id": "announcer_shoot",
+      "label": "SHOOT!",
+      "category": "倒數與配音"
+    },
+    {
+      "id": "launch",
+      "label": "拉環發射",
+      "category": "戰鬥"
+    },
+    {
+      "id": "spin_loop",
+      "label": "高速旋轉循環",
+      "category": "戰鬥"
+    },
+    {
+      "id": "impact_light",
+      "label": "輕碰撞",
+      "category": "戰鬥"
+    },
+    {
+      "id": "impact_heavy",
+      "label": "重碰撞",
+      "category": "戰鬥"
+    },
+    {
+      "id": "rail_dash",
+      "label": "齒軌衝刺",
+      "category": "戰鬥"
+    },
+    {
+      "id": "shield_hit",
+      "label": "護罩反彈",
+      "category": "戰鬥"
+    },
+    {
+      "id": "pocket_drop",
+      "label": "落坑撞底",
+      "category": "戰鬥"
+    },
+    {
+      "id": "ring_out",
+      "label": "出場淘汰",
+      "category": "結果"
+    },
+    {
+      "id": "victory",
+      "label": "勝利",
+      "category": "結果"
+    },
+    {
+      "id": "defeat",
+      "label": "落敗",
+      "category": "結果"
+    }
+  ],
+  "voice": {
+    "source": "Windows SAPI / Microsoft Zira Desktop",
+    "quality": "本機 TTS 節奏示範，非最終熱血配音",
+    "licenseNote": "本機語音合成，不含遊戲原音或特定演員仿聲。正式公開使用前請核對 Windows 語音引擎授權。"
+  },
+  "spin": {
+    "threshold": 0.55,
+    "note": "試聽比例門檻。正式接入須以 authoritative angularSpeed 換算與現場校準。"
+  },
+  "provenance": "SFX are original procedural synthesis. Spoken words use installed Windows SAPI TTS with authored pitch and echo processing. No external assets or cloud services.",
+  "measurements": [
+    {
+      "pack": "arena",
+      "cue": "ui_hover",
+      "duration": 0.11,
+      "peak": 0.7223055619045814,
+      "rms": 0.18448664599263026,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "ui_confirm",
+      "duration": 0.48,
+      "peak": 0.82,
+      "rms": 0.23215761803559554,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "ui_back",
+      "duration": 0.3,
+      "peak": 0.7714148369098488,
+      "rms": 0.1740468149635475,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "ui_ready",
+      "duration": 1.34,
+      "peak": 0.82,
+      "rms": 0.12431985446444066,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "countdown_3",
+      "duration": 0.6380725623582767,
+      "peak": 0.82,
+      "rms": 0.1642298709481566,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "countdown_2",
+      "duration": 0.5235827664399093,
+      "peak": 0.82,
+      "rms": 0.14968351155375131,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "countdown_1",
+      "duration": 0.6856009070294785,
+      "peak": 0.82,
+      "rms": 0.16357836485309957,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "announcer_go",
+      "duration": 1.9,
+      "peak": 0.82,
+      "rms": 0.11284960000796405,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "announcer_shoot",
+      "duration": 0.9488662131519274,
+      "peak": 0.82,
+      "rms": 0.1220834809599246,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "launch",
+      "duration": 1.2,
+      "peak": 0.82,
+      "rms": 0.11961790181469514,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "spin_loop",
+      "duration": 4,
+      "peak": 0.32,
+      "rms": 0.09778301720513037,
+      "loopBoundaryDelta": 9.036795909227967e-14
+    },
+    {
+      "pack": "arena",
+      "cue": "impact_light",
+      "duration": 0.45,
+      "peak": 0.82,
+      "rms": 0.07037728650152851,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "impact_heavy",
+      "duration": 1,
+      "peak": 0.8200000000000001,
+      "rms": 0.074904857010388,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "rail_dash",
+      "duration": 1.05,
+      "peak": 0.82,
+      "rms": 0.1941515041968231,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "shield_hit",
+      "duration": 0.95,
+      "peak": 0.82,
+      "rms": 0.07088138559723714,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "pocket_drop",
+      "duration": 1.3500226757369616,
+      "peak": 0.82,
+      "rms": 0.07249283807555777,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "ring_out",
+      "duration": 1.5,
+      "peak": 0.82,
+      "rms": 0.1754671810685042,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "victory",
+      "duration": 1.7000226757369614,
+      "peak": 0.82,
+      "rms": 0.15698096117234214,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "arena",
+      "cue": "defeat",
+      "duration": 1.72,
+      "peak": 0.82,
+      "rms": 0.15675546652985042,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "ui_hover",
+      "duration": 0.11,
+      "peak": 0.7179253793092676,
+      "rms": 0.12563265198993867,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "ui_confirm",
+      "duration": 0.48,
+      "peak": 0.82,
+      "rms": 0.15204393898153354,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "ui_back",
+      "duration": 0.3,
+      "peak": 0.8101643144568482,
+      "rms": 0.11089711429455561,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "ui_ready",
+      "duration": 1.2550113378684806,
+      "peak": 0.82,
+      "rms": 0.11733500693356148,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "countdown_3",
+      "duration": 0.7172108843537415,
+      "peak": 0.82,
+      "rms": 0.15867439619990203,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "countdown_2",
+      "duration": 0.584172335600907,
+      "peak": 0.8200000000000001,
+      "rms": 0.12106962180932848,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "countdown_1",
+      "duration": 0.7724263038548753,
+      "peak": 0.82,
+      "rms": 0.13517594049668077,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "announcer_go",
+      "duration": 1.9,
+      "peak": 0.82,
+      "rms": 0.11485822112497227,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "announcer_shoot",
+      "duration": 1.037891156462585,
+      "peak": 0.82,
+      "rms": 0.10990511692338042,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "launch",
+      "duration": 1.2,
+      "peak": 0.82,
+      "rms": 0.11254993300666538,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "spin_loop",
+      "duration": 4,
+      "peak": 0.32,
+      "rms": 0.1052219886068144,
+      "loopBoundaryDelta": 1.147732116147026e-13
+    },
+    {
+      "pack": "metal",
+      "cue": "impact_light",
+      "duration": 0.45,
+      "peak": 0.82,
+      "rms": 0.07169109167936023,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "impact_heavy",
+      "duration": 1,
+      "peak": 0.82,
+      "rms": 0.07578996431327535,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "rail_dash",
+      "duration": 1.05,
+      "peak": 0.82,
+      "rms": 0.1784674318570602,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "shield_hit",
+      "duration": 0.95,
+      "peak": 0.8200000000000001,
+      "rms": 0.07415968648126103,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "pocket_drop",
+      "duration": 1.3500226757369616,
+      "peak": 0.82,
+      "rms": 0.0700313023619297,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "ring_out",
+      "duration": 1.5,
+      "peak": 0.82,
+      "rms": 0.15861472152274195,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "victory",
+      "duration": 1.56,
+      "peak": 0.82,
+      "rms": 0.13044276114143827,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "metal",
+      "cue": "defeat",
+      "duration": 1.72,
+      "peak": 0.8200000000000001,
+      "rms": 0.14551131761399805,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "ui_hover",
+      "duration": 0.11,
+      "peak": 0.7106789715693562,
+      "rms": 0.14238357152841336,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "ui_confirm",
+      "duration": 0.48,
+      "peak": 0.8200000000000001,
+      "rms": 0.18574399063969996,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "ui_back",
+      "duration": 0.3,
+      "peak": 0.7796759705600883,
+      "rms": 0.13987422554495169,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "ui_ready",
+      "duration": 1.34,
+      "peak": 0.82,
+      "rms": 0.12194058480782963,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "countdown_3",
+      "duration": 0.5422902494331066,
+      "peak": 0.82,
+      "rms": 0.16852522951638035,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "countdown_2",
+      "duration": 0.4502721088435374,
+      "peak": 0.82,
+      "rms": 0.1573757632409336,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "countdown_1",
+      "duration": 0.5804761904761905,
+      "peak": 0.82,
+      "rms": 0.14906493174194593,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "announcer_go",
+      "duration": 1.9,
+      "peak": 0.82,
+      "rms": 0.13431062882985315,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "announcer_shoot",
+      "duration": 0.841156462585034,
+      "peak": 0.82,
+      "rms": 0.11521907886155246,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "launch",
+      "duration": 1.2,
+      "peak": 0.82,
+      "rms": 0.1186916753578067,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "spin_loop",
+      "duration": 4,
+      "peak": 0.32,
+      "rms": 0.09774661539440013,
+      "loopBoundaryDelta": 8.540532461875384e-15
+    },
+    {
+      "pack": "neon",
+      "cue": "impact_light",
+      "duration": 0.45,
+      "peak": 0.6713571039595487,
+      "rms": 0.06292421913219964,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "impact_heavy",
+      "duration": 1,
+      "peak": 0.7944749340075231,
+      "rms": 0.06983848162463137,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "rail_dash",
+      "duration": 1.05,
+      "peak": 0.82,
+      "rms": 0.1872484062085522,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "shield_hit",
+      "duration": 0.95,
+      "peak": 0.82,
+      "rms": 0.08593775433620428,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "pocket_drop",
+      "duration": 1.3500226757369616,
+      "peak": 0.82,
+      "rms": 0.06174137365978999,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "ring_out",
+      "duration": 1.5,
+      "peak": 0.82,
+      "rms": 0.17569428746449042,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "victory",
+      "duration": 1.84,
+      "peak": 0.82,
+      "rms": 0.15506112047246004,
+      "loopBoundaryDelta": 0
+    },
+    {
+      "pack": "neon",
+      "cue": "defeat",
+      "duration": 1.72,
+      "peak": 0.82,
+      "rms": 0.1442077548935259,
+      "loopBoundaryDelta": 0
+    }
+  ]
+}

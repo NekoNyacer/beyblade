@@ -84,3 +84,51 @@ The flexible ripcord is one cubic SVG curve anchored at the launcher’s right m
 
 
 The unlimited practice session relays measured phone speed and signed angle to the host over a token-scoped local connection. Reuse the standard launcher markup, dimensions, entry gate, loaded-assembly preview and flexible cord on the phone. Rearm after acknowledgment; do not require countdowns or completed battles. Host disconnection disables phone input, reconnection restores it, and host refresh retains the pairing. Separate browser sessions remain isolated.
+
+
+## 2026-11-11 本機整合
+保留 C 的紅藍版面與零件 ID／數值語義（刀盤三刃、六瓣重盾、圓環；棘輪3／6／9凸；平／球／尖軸），移入 F 的鑄造金屬、鏤空、徽章與透明結構。所有72張零件／組合圖由同一份 makePart 和 assemblyOffsets 再生，避免主持台與實際模型不一致。正式遊戲、自由試玩與配對手機練習共用新版橫向發射器外觀；固定情境僅用於診斷。
+
+
+## 2026-11-11 — Cream and green host tabs
+
+The host control surface follows the referenced marble run palette: cream #F6F8F3, ink #163C32, muted #5E7167, green #00894F (button fill #00854C for white-text contrast), and white working panels. This supersedes the charcoal/red host shell only; opponent red/blue remain as soft identification tints and the arena, stage introduction and phone interfaces retain their existing visuals.
+
+The topbar and main content share a centered 1440px maximum container and responsive horizontal gutters. Horizontal Match, Players, Bracket and Settings tabs replace the scrolling sidebar; each tab shows only its associated panel. Arrow Left/Right and Home/End activate and focus tabs. Existing ResizeObservers restore arena and bracket geometry when panels become visible. Settings contains event/mode controls and a new-tab link to /scenarios for repeatable free-battle testing.
+
+
+## 2026-11-11 — Restore battle palette
+The user requested the previous charcoal, red and blue host palette back. Preserve the centered header, horizontal tabs and test-page entry.
+
+## CathayBlade 賽事轉播介面（核准版）
+
+全站品牌是競技場原有的大樹圖示與 CathayBlade 字標；瀏覽器分頁也使用同一棵樹。主持、投影、選手、指南及所有測試頁共用 broadcast-kit.css 的深色金屬外框、紅藍對決色與綠色確認鍵。名單與技術數值維持清晰對比。
+
+主持台維持置中頁首及四個水平分頁。設定內連到自由對戰測試，測試區可回到 /#settings。對戰中 P1、P2 後方為該席選手姓名，兩側大字顯示實際播放幀換算的 RPM，未取得資料時顯示 —。準備與倒數不捏造轉速。多人混戰保留可容納完整名單的版面。
+
+## 2026-11-11 - Arena housing and dark stage refinement
+
+Extend the existing silver/green arena and dark broadcast world rather than introduce a new identity. Enclose the exposed bowl underside in chamfered silver-gray armor (#9EABB8), with a graphite lower reveal (#101820), an inset front fascia, restrained cooling slots and panel joints. Ground it on a dark stage (#04070B) with sparse perspective panel seams (#4F6577 at 0.25 opacity) and deterministic fine material bump. Retain CathayBlade branding; do not use the Beyblade logo.
+
+Reduced arena lighting restores depth; a gentle home-camera adjustment (12.2y/13z, scaled by fit zoom) and distant fog (#070B11, 60/150) preserve readable portrait framing. These are presentation changes only: preserve moldedBowlGeometry, buildDashRail, rail-config, authoritative physics and all six catch pockets. Existing desktop, mobile and broadcast layouts remain in force.
+
+## Components
+
+### Champion result extension (2026-11-11)
+
+Keep the existing charcoal and metallic broadcast world. The award screen centers one original gold trophy, one champion label and a prominent white winner name, resolved only from the authoritative server result. Suppress the arena, duplicate roster, phase labels, clock and commentary on this screen. Battle-royale results may add second and third place from authoritative rankings; practice uses 本場勝者 without the trophy, and an unresolved winner stays neutral.
+
+The existing display tools can reveal the completed tournament bracket; Escape returns to the award screen. Intermediate tournament rounds retain their bracket. The host and public bracket share a compact trophy endpoint, with a muted pending state. Long names wrap and reduce in size; portrait podiums stack, and short landscape screens reduce trophy height. Essential text is visible immediately. The small trophy entrance respects reduced-motion preferences and the existing motion setting. This component extends the current system without replacing its tokens or sidecars.
+
+## 2026-11-11 - Audience RPM readouts
+
+Keep the CathayBlade broadcast identity. Use bold, tabular Barlow Condensed RPM digits rather than the former thin serif numbers. Two-player plates occupy the upper side space with approximately 136px digits at 1920x1080; ten-player matches use separate approximately 67px RPM rows, while sixteen-player matches use compact single-line readouts. Preserve the bowl, player identification and result surfaces. The host uses the same readout logic and enlarged numerals.
+
+Ready, countdown and the shared pull window show 0 RPM. A witnessed new launch counts up for the first 0.48 seconds of authoritative playback time, then displays the exact angular-speed-derived RPM from the rendered frame. Do not invent a value before the server starts the match. The existing unpulled-player fallback is labeled as standard launch. Late entry, restored rounds, replay and reduced motion show authoritative values directly. Refresh and network reconnect must not restart the animation.
+### Projection lobby clarification
+The annotated lobby keeps the QR and game format, removes the extra player-entry heading and QR caption details, and shows names with large 0 RPM readouts instead of the standard-launch status. Apply the RPM hierarchy before the match as well as during it: about 125px for small rosters, 72px for ten players and 49px for sixteen at 1920x1080. The compact roster reflows without cutting numbers; host connection warnings and QR entry remain functional. Waiting-room labels must not affect authoritative battle readouts or the Count Up behavior.
+## 2026-11-11 - Transparent CathayBlade identity
+
+Keep the original tree artwork, letter shapes and underline. The shared dark-interface wordmark uses off-white #F4F6FA for Cathay and green #56D889 for Blade, on a fully transparent canvas with no white plate, padding or rounded frame. All existing host, projection, phone, guide and test-page callers share this treatment. The silver bowl keeps the original deep-green palette through cathayblade-on-light.svg; do not apply the white UI lettering to a pale floor. No third-party marks are introduced.
+
+Validate with node scripts/logo-brand-check.mjs: identical alpha and tree pixels across variants, intended surface contrast, and desktop/phone placements. Real projector output remains a venue check.

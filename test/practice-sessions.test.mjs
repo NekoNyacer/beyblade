@@ -11,5 +11,15 @@ test('phone pulls animate only the paired host and remain repeatable after recon
  assert.equal((await post('/api/practice-session/pull',{...input,token:s.hostToken})).status,400);
  host.close();let status;do{status=await phone.next('connection');}while(status.hostOnline);assert.equal(status.hostOnline,false);assert.equal((await post('/api/practice-session/pull',input)).status,400);
  const reconnected=await stream(s,s.hostToken,'host');assert.equal((await reconnected.next('launch')).count,3);assert.equal((await post('/api/practice-session/pull',input)).data.count,4);
+ const replay=await reconnected.next('launch');assert.equal(replay.count,4);
+ assert.equal(replay.run.frames[0].t,0);assert.equal(replay.run.frames.at(-1).done,true);
+ assert.ok(replay.run.frames.at(-1).tops.every(top=>top.angularSpeed===0));
+ const standard=await post('/api/practice-session/pull',{...input,power:.5,angle:0,speed:null});
+ assert.equal(standard.status,200);assert.ok(Math.abs(standard.data.initial.rpm-7200)<1e-9);
+ assert.equal(standard.data.count,5);
+ const next=await reconnected.next('launch');assert.equal(next.run.frames[0].roundId,'paired-5');
+ assert.ok(next.run.frames[0].tops.every(top=>Math.abs(top.angularSpeed*60/(2*Math.PI)-7200)<.001));
+ assert.equal((await post('/api/practice-session/pull',{...input,speed:-1})).status,400);
+
  }finally{for(const s of streams)s.close();await app.close();}
 });

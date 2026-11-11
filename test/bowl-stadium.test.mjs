@@ -2,21 +2,64 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createBattle,stepBattle} from '../game.mjs';
 import {battleFrame} from '../battle-frame.mjs';
-import {railConfigForCount,surfaceHeight,surfaceSlope} from '../public/assets/rail-config.js';
+import {GROOVE_RADIUS_RATIO,GROOVE_HALF_WIDTH_RATIO,GROOVE_DEPTH,railConfigForCount,surfaceGradient,surfaceHeight,surfaceSlope} from '../public/assets/rail-config.js';
 const players=[{id:'0'},{id:'1'}];
 function solo(energy,x=2.5,speed=6){
  const b=createBattle(players,15),a=b.tops[0],rail=railConfigForCount(2),angle=rail.ringOutAngles[0];
  Object.assign(a,{x,z:0,y:surfaceHeight(x,0,b.arenaRadius),vy:0,vx:0,vz:speed,energy,angularSpeed:energy*6,drag:0,railCooldown:100});
  Object.assign(b.tops[1],{x:Math.cos(angle)*(b.arenaRadius+.3),z:Math.sin(angle)*(b.arenaRadius+.3),y:rail.pocketFloor,vy:0,vx:0,vz:0,energy:1000,drag:0,pocketActive:true,pocketIndex:0});return b;
 }
-test('the floor is exactly flat centrally and rises continuously to the gear crest',()=>{
+test('the flat center, shallow groove and outer bank form one continuous floor',()=>{
  for(const n of [2,10,16]){
   const c=railConfigForCount(n);
   for(const r of [0,c.flatRadius/2,c.flatRadius])assert.equal(surfaceHeight(r,0,c.arenaRadius),0);
+  const center=c.arenaRadius*GROOVE_RADIUS_RATIO,half=c.arenaRadius*GROOVE_HALF_WIDTH_RATIO;
+  assert.ok(Math.abs(surfaceHeight(center,0,c.arenaRadius)+GROOVE_DEPTH)<1e-9);
+  for(const sign of [-1,1]){
+   assert.ok(Math.abs(surfaceHeight(0,center+sign*half,c.arenaRadius))<1e-9);
+   assert.ok(sign*surfaceSlope(0,center+sign*.5*half,c.arenaRadius)>0);
+  }
   let previous=0;
   for(let i=1;i<=20;i++){const r=c.flatRadius+(c.arenaRadius-c.flatRadius)*i/20,h=surfaceHeight(r,0,c.arenaRadius);assert.ok(h>previous);assert.ok(surfaceSlope(r,0,c.arenaRadius)>0);previous=h;}
   assert.equal(previous,c.rimHeight);assert.equal(c.railRadius,c.arenaRadius-.20);
   for(const angle of c.ringOutAngles)assert.ok(Math.abs(surfaceHeight(Math.cos(angle)*c.arenaRadius,Math.sin(angle)*c.arenaRadius,c.arenaRadius)-c.rimHeight)<1e-9);
+ }
+});
+test('a tangential tip can circle the groove; a fast transverse one clears it',()=>{
+ const radius=railConfigForCount(2).arenaRadius,center=radius*GROOVE_RADIUS_RATIO,half=radius*GROOVE_HALF_WIDTH_RATIO;
+ for(const direction of [-1,1]){
+  const battle=solo(50,center,direction*2.5),top=battle.tops[0];
+  top.orbitDir=direction;top.drag=2.5;
+  let arc=0;
+  for(let i=0;i<400;i++){
+   const x=top.x,z=top.z;stepBattle(battle,.01);
+   arc+=direction*Math.atan2(x*top.z-z*top.x,x*top.x+z*top.z);
+   assert.ok(Math.abs(Math.hypot(top.x,top.z)-center)<half);
+   assert.equal(top.railActive,false);
+  }
+  assert.ok(arc>Math.PI,'tangential contact carries the tip around the center');
+ }
+ const crossing=solo(50,center-half-.05,1),top=crossing.tops[0];
+ top.vx=7;
+ let clearance=0;
+ for(let i=0;i<10;i++){
+  stepBattle(crossing,.01);
+  clearance=Math.max(clearance,top.y-surfaceHeight(top.x,top.z,radius));
+ }
+ assert.ok(top.x>center+half&&top.vx>6);
+ assert.ok(clearance>.015,'a fast tip can skim over the dip');
+});
+test('a grounded tip rolls along the local fall line on both molded shoulders',()=>{
+ const c=railConfigForCount(2),radius=.88*c.arenaRadius;
+ for(const offset of [-.20,.20]){
+  const angle=c.exitAngles[0]+offset,x=radius*Math.cos(angle),z=radius*Math.sin(angle);
+  const b=solo(5,x,0),top=b.tops[0],gradient=surfaceGradient(x,z,c.arenaRadius);
+  Object.assign(top,{z,y:surfaceHeight(x,z,c.arenaRadius)});
+  stepBattle(b,.01);
+  const speed=Math.hypot(top.vx,top.vz),slope=Math.hypot(gradient.x,gradient.z);
+  assert.ok(Math.abs(gradient.z*x-gradient.x*z)/radius>.05,'molded shoulder has a cross-slope');
+  assert.ok(-(top.vx*gradient.x+top.vz*gradient.z)/(speed*slope)>.995);
+  assert.equal(top.y,surfaceHeight(top.x,top.z,c.arenaRadius));
  }
 });
 test('a slowly climbing high-spin top loses outward speed and rolls back down the slope',()=>{
@@ -35,6 +78,7 @@ test('a slowly climbing high-spin top loses outward speed and rolls back down th
 test('a freely circling high-spin top sweeps into the central flat',()=>{
  for(const direction of [-1,1]){
   const battle=solo(95,2.5,direction*4.5),top=battle.tops[0],rail=railConfigForCount(2);
+  top.orbitDir=direction;
   let path=0,insideFlat=0;
   for(let i=0;i<400;i++){
    const x=top.x,z=top.z;
@@ -80,7 +124,7 @@ test('a tooth rebound can cross the bowl without repeatedly shuttling along a di
 test('successive complete laps can widen and tighten without touching the teeth',()=>{
  const rail=railConfigForCount(2),fullTurn=2*Math.PI;
  for(const direction of [-1,1]){
-  const battle=solo(95,2.5,4.5*direction),top=battle.tops[0];
+  const battle=solo(95,2.45,4.75*direction),top=battle.tops[0];
   top.orbitDir=direction;
   const meanRadii=[];
   let swept=0,radiusIntegral=0;
@@ -147,7 +191,7 @@ test('older saved battles recover individual mass offsets and reproduce their re
  assert.deepEqual(legacy,replay);
 });
 test('medium spin leaves the outer circle and traverses the central flat',()=>{
- const b=solo(50),a=b.tops[0];let minimumRadius=Infinity;
+ const b=solo(50),a=b.tops[0];a.vx=-.5;let minimumRadius=Infinity;
  for(let i=0;i<600;i++){stepBattle(b,.01);minimumRadius=Math.min(minimumRadius,Math.hypot(a.x,a.z));assert.equal(a.pocketActive,false);}
  assert.ok(minimumRadius<b.arenaRadius*.45,'medium-speed crossings enter the central flat');
 });

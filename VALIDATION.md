@@ -16,3 +16,16 @@
 77 core tests pass, including flat-to-steep surface continuity, six grounded/airborne pocket gates, high/medium/low motion, gear acceleration and upper exit center crossing, residual spin and simultaneous exhaustion. Browser stadium checks pass for all eight scenes, pause, reduced motion, overhead Sprite identity, six exterior pockets, low-spin lean (0.0658 radians), incomplete settling state and no page errors. Two live phone rounds pass with current horizontal gestures and distinct measured powers. Desktop 1440, phone 390, isolated arena 1600 and 16-player captures were inspected; independent screenshot review: ship at that visual scope.
 
 Screenshots: `.qa/stadium-desktop.png`, `.qa/stadium-mobile.png`, `.qa/bowl-arena.png`, `.qa/bowl-dense.png`, `.qa/bowl-low-spin.png`, `.qa/bowl-settling.png`. Runtime reports: `.qa/stadium-browser-results.json`, `.qa/phone-launch-results.json`. Physical tops, projector and real phone hardware were not calibrated in this pass.
+
+
+## 2026-11-11 integrated local review
+131 unit tests and 85 syntax checks pass. Audio, tournament, stadium/contact, real repeatable practice, horizontal phone launch, paired practice/reconnect/fullscreen and 10-player browser smoke pass. Final independent visual review accepted regenerated part artwork and unified launcher surfaces. Detailed provenance, evidence and physical-device limits: INTEGRATION_REVIEW.md.
+
+
+## 2026-11-11 release integration
+
+The final combined source passes 174 unit tests, 114 JavaScript syntax checks, and 21 browser regression scripts. Coverage includes ten-player matches, complete tournaments, sixteen-player long-name layouts, stadium behavior, mobile touch launch, paired/repeated practice and reconnect, portrait/fullscreen handling, launch timing, audio, host tabs, RPM displays, champion screens, collision glow, and transparent brand variants. Clean locked dependency installation succeeds; runtime npm audit reports zero vulnerabilities. The publishable source scan found no credential material.
+
+Release-only regressions preserve the existing opt-in public room creation mode, invitation and host secrets, protected admin endpoints, same-origin checks and creation rate limit. The Dockerfile now includes both root practice modules, removing the previous untracked deployment overlay.
+
+Two old browser fixtures were corrected during the release pass: the arena instrumentation no longer assumes the old class name; phone result timing has bounded wall-clock allowance and explicit server-tick synchronization. Full reruns pass. Final measured phone rounds finished at 28.15 and 31.60 simulation seconds (32.99 and 36.94 wall seconds), with one survivor and no browser errors. No physical phone, iOS Safari, projector, or subjective speaker listening test was performed. Production Docker, HTTPS/WSS and persistence verification are separate deployment gates.

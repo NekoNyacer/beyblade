@@ -8,9 +8,9 @@ function resolve(room){start(room);for(let i=0;i<1000&&!room.battle.done;i++)ste
 
 test('duel introduction precedes the synchronized countdown and launch',()=>{
  const room=roomWith(2);prepare(room);beginCountdown(room,1000);
- assert.equal(room.round.countdownAt,5000);assert.equal(room.round.shootAt,10000);
- advanceLaunch(room,9999);assert.equal(room.phase,'countdown');assert.equal(room.battle,null);
- advanceLaunch(room,10000);assert.equal(room.phase,'running');assert.ok(room.battle);
+ assert.equal(room.round.countdownAt,5000);assert.equal(room.round.shootAt,8000);
+ advanceLaunch(room,7999);assert.equal(room.phase,'countdown');assert.equal(room.battle,null);
+ advanceLaunch(room,8000);assert.equal(room.phase,'shoot');advanceLaunch(room,9200);assert.equal(room.phase,'running');assert.ok(room.battle);
 });
 
 test('all sizes use exactly one bye per odd stage, two-player games and n-1 real results',()=>{

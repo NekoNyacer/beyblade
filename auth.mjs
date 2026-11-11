@@ -2,7 +2,8 @@ import {randomBytes,createHash,timingSafeEqual} from 'node:crypto';
 const digest=value=>createHash('sha256').update(value).digest('hex');
 export function secretMatches(actual,expected){return typeof actual==='string'&&typeof expected==='string'&&expected.length>0&&timingSafeEqual(Buffer.from(digest(actual),'hex'),Buffer.from(digest(expected),'hex'));}
 function cookies(req){const result={};for(const part of (req.headers.cookie||'').split(';')){const at=part.indexOf('=');if(at>0){const key=part.slice(0,at).trim();if(!Object.hasOwn(result,key))result[key]=part.slice(at+1).trim();}}return result;}
-export function createPairing({publicMode=false,adminKey='',originAllowed,now=Date.now,pairTTL=600000,hostTTL=28800000,onRevoke=()=>{}}={}){
+export function createPairing({publicMode=false,allowPublicCreate=false,adminKey='',originAllowed,now=Date.now,pairTTL=600000,hostTTL=28800000,onRevoke=()=>{}}={}){
+ const access={publicMode,...(allowPublicCreate?{allowPublicCreate:true}:{})};
  const pending=new Map(),sessions=new Map(),limits=new Map();
  const nonce=()=>randomBytes(32).toString('hex');
  function sweep(){const t=now();for(const [key,p]of pending)if(p.expires<=t)pending.delete(key);for(const [key,s]of sessions)if(s.expires<=t)sessions.delete(key);for(const [key,l]of limits)if(l.until<=t)limits.delete(key);}
@@ -21,13 +22,13 @@ export function createPairing({publicMode=false,adminKey='',originAllowed,now=Da
   const p={code,label:String(b.label||'Host browser').replace(/[\u0000-\u001f]/g,'').slice(0,80),created:now(),expires:now()+pairTTL,requesterIP:ip,userAgent:String(req.headers['user-agent']||'').slice(0,200),approved:false};pending.set(digest(token),p);reply(res,200,{code,expires:p.expires,expiresAt:p.expires},[cookie('bp_pair',token,Math.ceil(pairTTL/1000),'/api/pair')]);return true;
  }
  if(req.method==='GET'&&path==='/api/pair/status'){
-  const session=host(req);if(session){reply(res,200,{publicMode,authenticated:true,status:'authenticated',expiresAt:session.expires});return true;}
+  const session=host(req);if(session){reply(res,200,{...access,authenticated:true,status:'authenticated',expiresAt:session.expires});return true;}
   const token=cookies(req).bp_pair,key=token?digest(token):'',p=pending.get(key);
   if(!limit('poll:'+ (key||ip),60,60000)||!limit('poll:global',300,60000)){reply(res,429,{error:'Polling too frequently'});return true;}
-  if(!p){reply(res,200,{publicMode,authenticated:false,status:token?'expired':'none'});return true;}
-  if(!p.approved){reply(res,200,{publicMode,authenticated:false,status:'pending',code:p.code,expires:p.expires,expiresAt:p.expires});return true;}
+  if(!p){reply(res,200,{...access,authenticated:false,status:token?'expired':'none'});return true;}
+  if(!p.approved){reply(res,200,{...access,authenticated:false,status:'pending',code:p.code,expires:p.expires,expiresAt:p.expires});return true;}
   if(sessions.size>=20){reply(res,429,{error:'Host session capacity reached'});return true;}
-  pending.delete(key);const sessionToken=nonce();sessions.set(digest(sessionToken),{id:randomBytes(12).toString('hex'),label:p.label,created:now(),expires:now()+hostTTL,requesterIP:p.requesterIP,userAgent:p.userAgent});reply(res,200,{publicMode,authenticated:true,status:'authenticated',expiresAt:now()+hostTTL},[cookie('bp_host',sessionToken,Math.ceil(hostTTL/1000)),cookie('bp_pair','',0,'/api/pair')]);return true;
+  pending.delete(key);const sessionToken=nonce();sessions.set(digest(sessionToken),{id:randomBytes(12).toString('hex'),label:p.label,created:now(),expires:now()+hostTTL,requesterIP:p.requesterIP,userAgent:p.userAgent});reply(res,200,{...access,authenticated:true,status:'authenticated',expiresAt:now()+hostTTL},[cookie('bp_host',sessionToken,Math.ceil(hostTTL/1000)),cookie('bp_pair','',0,'/api/pair')]);return true;
  }
  if(req.method==='POST'&&path==='/api/pair/logout'){const c=cookies(req);if(c.bp_host){const key=digest(c.bp_host),s=sessions.get(key);sessions.delete(key);if(s)onRevoke(s.id);}if(c.bp_pair)pending.delete(digest(c.bp_pair));reply(res,200,{ok:true},[cookie('bp_host','',0),cookie('bp_pair','',0,'/api/pair')]);return true;}
  if(['/api/pair/approve','/api/pair/admin/list','/api/pair/revoke'].includes(path)){
