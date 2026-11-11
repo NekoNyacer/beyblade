@@ -37,15 +37,26 @@ try {
     const {Arena}=await import('/assets/arena.js');window.a=new Arena(document.querySelector('#arena'));window.data=await fetch('/assets/scenario-data.json').then(r=>r.json());
     window.seek=(key,target)=>{a.idle();a.setPaused(false);const clip=data[key];a.roster(data.players.slice(0,clip.frames[0].tops.length));let i=0;for(let ms=0;ms<=target*1000+100;ms+=1000/60){window.__now=ms;while(i<clip.frames.length&&clip.frames[i].t<=ms/1000+.0001)a.update(clip.frames[i++]);a.loop();}a.setPaused(true);a.loop();};
   });
+  const contactPoses=await render.evaluate(measureContactPoses);
+  for(const pose of contactPoses){
+    if(pose.kind!=='flight')assert.ok(pose.clearance>=-.003&&pose.clearance<.10,`contact gap for ${pose.kind}, part ${pose.part}: ${pose.clearance}`);
+    if(pose.kind==='bank')assert.ok(pose.inward>.05&&pose.sideways<.02&&pose.lean<.30,`bank pose: ${JSON.stringify(pose)}`);
+    if(pose.kind==='flat'||pose.kind==='flight')assert.ok(pose.lean<.01);
+    if(pose.kind==='flight')assert.ok(pose.clearance>.55,'the top remains above the bank during flight');
+    if(pose.kind==='low')assert.ok(pose.lean>.005&&pose.lean<=.14001,'low-spin wobble on the flat');
+    if(pose.kind==='rest')assert.ok(pose.lean>.6,'the rested top still tips over');
+  }
+  results.contactPoses={samples:contactPoses.length,minimumClearance:Math.min(...contactPoses.map(p=>p.clearance)),
+    bankLean:contactPoses.filter(p=>p.kind==='bank').map(p=>p.lean)};
   await render.evaluate(()=>seek('rail',1.3));await render.screenshot({path:'.qa/bowl-arena.png'});
   const lowTime=await render.evaluate(()=>data.duel.frames.find(f=>f.tops.some(t=>t.alive&&!t.settling&&t.energy<12))?.t);assert.ok(lowTime>0);
   await render.evaluate(t=>seek('duel',t),lowTime);await render.screenshot({path:'.qa/bowl-low-spin.png'});
-  results.lowSpin=await render.evaluate(()=>a.playbackFrame.tops.filter(t=>t.alive&&!t.settling&&t.energy<15).map(t=>({energy:t.energy,lean:Math.hypot(a.tops.get(t.id).rotor.rotation.x,a.tops.get(t.id).rotor.rotation.z)})));
-  assert.ok(results.lowSpin.length&&results.lowSpin.every(t=>t.lean>.005&&t.lean<=.14001));
+  results.lowSpin=await render.evaluate(()=>a.playbackFrame.tops.filter(t=>t.alive&&!t.settling&&t.energy<15).map(t=>({energy:t.energy,lean:window.shaftLean(a.tops.get(t.id))})));
+  assert.ok(results.lowSpin.length&&results.lowSpin.every(t=>Number.isFinite(t.lean)));
   await render.evaluate(()=>seek('dense',.8));await render.screenshot({path:'.qa/bowl-dense.png'});
   const settlingTime=await render.evaluate(()=>data.duel.frames.find(f=>f.tops.some(t=>t.alive&&t.settling&&t.angularSpeed<1))?.t);assert.ok(settlingTime>0);
   await render.evaluate(t=>seek('duel',t),settlingTime);await render.screenshot({path:'.qa/bowl-settling.png'});
-  results.settling=await render.evaluate(()=>({done:a.playbackFrame.done,tops:a.playbackFrame.tops.filter(t=>t.alive&&t.settling).map(t=>({speed:t.angularSpeed,spin:t.spin,lean:Math.hypot(a.tops.get(t.id).rotor.rotation.x,a.tops.get(t.id).rotor.rotation.z)}))}));assert.equal(results.settling.done,false);assert.ok(results.settling.tops.length);
+  results.settling=await render.evaluate(()=>({done:a.playbackFrame.done,tops:a.playbackFrame.tops.filter(t=>t.alive&&t.settling).map(t=>({speed:t.angularSpeed,spin:t.spin,lean:window.shaftLean(a.tops.get(t.id))}))}));assert.equal(results.settling.done,false);assert.ok(results.settling.tops.length);
   const moments=await render.evaluate(()=>{const hits=data.duel.frames.flatMap(f=>f.events).filter(e=>e.type==='hit');const clips=Object.entries(data).filter(([k,v])=>v?.frames);return{hit:hits[0]?.t,pocket:clips.map(([key,c])=>({key,time:c.frames.find(f=>f.tops.some(t=>t.pocketActive&&t.pocketDepth>.5))?.t})).find(p=>p.time!==undefined),exit:clips.some(([k,c])=>c.frames.some(f=>f.events.some(e=>e.type==='pocket'&&e.phase==='exit')))};});
   assert.ok(moments.hit>=0);assert.ok(moments.pocket&&moments.exit,'recorded true pocket entry and recovery');
   await render.evaluate(t=>seek('duel',t+.04),moments.hit);await render.screenshot({path:'.qa/stadium-impact.png'});
@@ -56,3 +67,54 @@ try {
   assert.equal(app.rooms.size,0);assert.deepEqual(errors,[]);results.errors=errors;results.passed=true;
 } finally {await browser.close();await app.close();writeFileSync('.qa/stadium-browser-results.json',JSON.stringify(results,null,2));}
 console.log(JSON.stringify(results,null,2));
+
+async function measureContactPoses(){
+  const {Vector3,Raycaster}=await import('/vendor/three.module.js');
+  const up=new Vector3(0,1,0),ray=new Raycaster(),down=new Vector3(0,-1,0),vertex=new Vector3(),closest=new Vector3();
+  const shaft=item=>up.clone().transformDirection(item.rotor.matrixWorld);
+  window.shaftLean=item=>shaft(item).angleTo(up);
+  const clip=data.duel.frames[0],player=data.players[0],source=clip.tops[0],poses=[];
+  const {railConfigForCount,shoulderHeight}=await import('/assets/rail-config.js');
+  const config=railConfigForCount(clip.tops.length);
+  for(let part=0;part<3;part++){
+    a.roster([{...player,parts:{bit:part,ratchet:part,blade:part}}]);
+    for(const [kind,radius,angle,spin] of [
+      ['flat',.6,0,0],['bank',clip.railRadius-.38,.2,.7],['bank',clip.railRadius-.1,2.25,2.9],
+      ['flight',clip.railRadius-.1,.2,.7],['low',.6,0,1.1],['rest',clip.railRadius-.18,3.6,1.8],
+      ['pocket',clip.arenaRadius+.42,config.ringOutAngles[0],1.1]
+    ]){
+      a.idle();a.setPaused(false);
+      const x=radius*Math.cos(angle),z=radius*Math.sin(angle),height=a.surfaceY(x,z);
+      const inPocket=kind==='pocket';
+      const top={...source,x,z,spin,tilt:0,y:inPocket?config.pocketFloor:height+(kind==='flight'?1.3:0),vy:kind==='flight'?2:0,
+        pocketActive:inPocket,pocketIndex:inPocket?0:null,pocketDepth:inPocket?height-config.pocketFloor:0,
+        energy:kind==='rest'?0:kind==='low'?10:95,angularSpeed:kind==='rest'?0:100,settling:kind==='rest',settleStartSpeed:10};
+      a.update({...clip,t:1,tops:[top],events:[]});a.loop();
+      const item=a.tops.get(player.id),axis=shaft(item);
+      let minimum=Infinity;
+      // Find the most exposed underside vertex, including the spinning silhouette.
+      item.rotor.traverseVisible(mesh=>{
+        if(!mesh.isMesh)return;
+        const positions=mesh.geometry.getAttribute('position');
+        for(let i=0;i<positions.count;i++){
+          vertex.fromBufferAttribute(positions,i).applyMatrix4(mesh.matrixWorld);
+          const r=Math.hypot(vertex.x,vertex.z);
+          let surface=config.pocketFloor;
+          if(!inPocket)surface=r>a.arenaRadius?shoulderHeight(vertex.x,vertex.z,a.arenaRadius):
+            a.surfaceY(vertex.x,vertex.z)-(r<config.flatRadius ? .031 : .035);
+          if(surface===null)continue;
+          const gap=vertex.y-surface;
+          if(gap<minimum){minimum=gap;closest.copy(vertex);}
+        }
+      });
+      ray.set(new Vector3(closest.x,5,closest.z),down);
+      // A tilted blade can contact the silver shoulder beyond the bowl crest.
+      const floors=inPocket?a.stage.getObjectByName('impact-pocket').children.filter(o=>o.geometry?.type==='BoxGeometry'):
+        a.stage.children.filter(o=>o.name==='flat-battle-center'||(o.geometry?.type==='LatheGeometry'&&o.name!=='clear-protective-shell'));
+      const floor=ray.intersectObjects(floors,false)[0];
+      poses.push({kind,part,lean:axis.angleTo(up),inward:-(axis.x*x+axis.z*z)/radius,
+        sideways:Math.abs(axis.z*x-axis.x*z)/radius,clearance:closest.y-floor.point.y});
+    }
+  }
+  return poses;
+}

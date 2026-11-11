@@ -9,6 +9,7 @@
     "test": "node --test test/*.test.mjs",
     "preview": "node scripts/preview.mjs",
     "test:browser": "node scripts/browser-smoke.mjs",
+    "test:tournament": "node scripts/tournament-check.mjs",
     "test:visual": "node scripts/visual-edge-test.mjs",
     "test:integration": "node scripts/stadium-check.mjs",
     "test:phone": "node scripts/phone-launch-check.mjs",

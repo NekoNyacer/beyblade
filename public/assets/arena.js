@@ -1,8 +1,10 @@
 import * as THREE from '/vendor/three.module.js';
 import {FrameTimeline,RingoutReplay} from './motion.js';
 import {makePart,metalEnvironment,dispose} from './parts.js';
-import {railConfigForCount,surfaceHeight} from './rail-config.js';
+import {assemblyOffsets} from './part-catalog.js';
+import {railConfigForCount,shoulderHeight,surfaceHeight,surfaceSlope} from './rail-config.js';
 import {buildStadium} from './stadium.js';
+import {buildTopSupport,bowlSkinY,bowlSupportY,flatContactY,restingSupportY} from './top-support.js';
 const TRAIL_POINTS=22, EFFECT_LIMIT=16;
 // Meet the lower disk (y=.27–.45), rather than suggesting contact at floor level.
 const RAIL_CONTACT_HEIGHT=.35;
@@ -29,6 +31,8 @@ export class Arena {
     this.scene=new THREE.Scene();this.env=metalEnvironment(this.renderer);this.scene.environment=this.env.texture;
     this.camera=new THREE.PerspectiveCamera(39,1,.1,100);this.home=new THREE.Vector3(0,12.5,11.5);
     this.focus=new THREE.Vector3();this.cameraGoal=new THREE.Vector3();this.camera.position.copy(this.home);
+    this.bankAxis=new THREE.Vector3();this.rockEuler=new THREE.Euler();this.rockRotation=new THREE.Quaternion();
+    this.floorRotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI/2,0,0));
     this.scene.add(new THREE.HemisphereLight(0xd7ebff,0x142238,1.05));
     const fill=new THREE.DirectionalLight(0x83caff,2.3);fill.position.set(5,6,-6);this.scene.add(fill);
     const rim=new THREE.DirectionalLight(0xe2ffea,2.8);rim.position.set(-5,3,-4);this.scene.add(rim);
@@ -58,17 +62,18 @@ export class Arena {
     const angles=frame?.exitAngles||config.exitAngles,half=frame?.exitHalfWidth??config.exitHalfWidth;
     const outer=frame?.ringOutAngles||config.ringOutAngles||[0,Math.PI*2/3,Math.PI*4/3];
     const outerHalf=frame?.ringOutHalfWidth??config.ringOutHalfWidth??.20;
-    this.arenaRadius=radius;this.railRadius=railRadius;
+    this.arenaRadius=radius;this.railRadius=railRadius;this.pocketFloor=config.pocketFloor;
     const key=JSON.stringify([radius,railRadius,angles,half,outer,outerHalf]);if(key===this.railGeometryKey)return;
     this.railGeometryKey=key;
     for(const group of [this.stage,this.rails]){group.traverse(object=>{if(object.isInstancedMesh)object.dispose();});dispose(group);group.clear();}
-    buildStadium(this.stage,this.rails,{...config,arenaRadius:radius,railRadius,exitAngles:angles,exitHalfWidth:half,ringOutAngles:outer,ringOutHalfWidth:outerHalf});this.fit();
+    buildStadium(this.stage,this.rails,{...config,arenaRadius:radius,flatRadius:radius*.60,railRadius,exitAngles:angles,exitHalfWidth:half,ringOutAngles:outer,ringOutHalfWidth:outerHalf});this.fit();
   }
 
   makeTop(player,index) {
-    const group=new THREE.Group(),rotor=new THREE.Group();group.add(rotor);const color=new THREE.Color(player.color||'#ffcf56');
-    const parts=player.parts||{},bladeMaterials=[];
-    for(const [kind,y] of [['bit',.30],['ratchet',.43],['blade',.62]]){
+    const group=new THREE.Group(),pose=new THREE.Group(),rotor=new THREE.Group();
+    group.add(pose);pose.add(rotor);const color=new THREE.Color(player.color||'#ffcf56');
+    const parts=player.parts||{},bladeMaterials=[],offsets=assemblyOffsets(parts),bladeShift=offsets.blade-.62;
+    for(const [kind,y] of Object.entries(offsets)){
       const part=makePart(kind,parts[kind]||0,player.color);part.position.y=y;rotor.add(part);if(kind==='blade')part.traverse(o=>{if(o.isMesh)bladeMaterials.push(o.material);});
     }
     const spinBlur=new THREE.Group(),blurMaterials=[];
@@ -76,7 +81,9 @@ export class Arena {
     blurPart(new THREE.CylinderGeometry(.49,.53,.11,80),new THREE.MeshPhysicalMaterial({color:0xc4d7e4,metalness:.92,roughness:.22,clearcoat:1,transparent:true,opacity:0}),.62);
     const band=blurPart(new THREE.RingGeometry(.30,.49,80),new THREE.MeshPhysicalMaterial({color,metalness:.65,roughness:.25,emissive:color,emissiveIntensity:.14,transparent:true,opacity:0,side:THREE.DoubleSide}),.686);band.rotation.x=-Math.PI/2;
     const inner=blurPart(new THREE.RingGeometry(.19,.30,64),new THREE.MeshStandardMaterial({color:0xe2edf4,metalness:.95,roughness:.25,transparent:true,opacity:0,side:THREE.DoubleSide}),.688);inner.rotation.x=-Math.PI/2;
-    rotor.add(spinBlur);
+    const support=buildTopSupport(rotor);
+    spinBlur.position.y=bladeShift;rotor.add(spinBlur);
+    rotor.position.y=-support.tipY;
     const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d'),playerName=String(player.name||'選手 '+(index+1));
     ctx.font='600 44px sans-serif';canvas.width=Math.min(840,Math.max(240,Math.ceil(ctx.measureText(playerName).width)+124));canvas.height=144;
     ctx.fillStyle='#101728';ctx.strokeStyle=player.color||'#ffcf56';ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(3,3,canvas.width-6,104,20);ctx.fill();ctx.stroke();
@@ -91,14 +98,14 @@ export class Arena {
     const trailGeometry=new THREE.BufferGeometry();trailGeometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array((TRAIL_POINTS-1)*18),3));
     const trail=new THREE.Mesh(trailGeometry,new THREE.MeshBasicMaterial({color,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,toneMapped:false}));trail.frustumCulled=false;trail.visible=false;this.scene.add(trail);
     const glow=new THREE.Mesh(new THREE.PlaneGeometry(1.8,1.8),new THREE.MeshBasicMaterial({map:this.glowTexture,color,transparent:true,opacity:.28,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));glow.rotation.x=-Math.PI/2;glow.position.y=.015;group.add(glow);
-    const spinHalo=new THREE.Mesh(new THREE.TorusGeometry(.43,.012,5,48),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.32,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));spinHalo.rotation.x=Math.PI/2;spinHalo.position.y=.68;group.add(spinHalo);
+    const spinHalo=new THREE.Mesh(new THREE.TorusGeometry(.43,.012,5,48),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.32,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));spinHalo.rotation.x=Math.PI/2;spinHalo.position.y=.68+bladeShift;rotor.add(spinHalo);
     const contact=new THREE.Group();
     const pad=new THREE.Mesh(new THREE.CircleGeometry(.20,16),new THREE.MeshBasicMaterial({color:0xffcf70,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));pad.rotation.x=-Math.PI/2;contact.add(pad);
     const sparks=[];const sparkGeometry=new THREE.BoxGeometry(.10,.025,.035);
     for(let i=0;i<3;i++){const spark=new THREE.Mesh(sparkGeometry,new THREE.MeshBasicMaterial({color:i===0?0xffffff:0xffcf70,transparent:true,opacity:0}));contact.add(spark);sparks.push(spark);}
     contact.visible=false;this.scene.add(contact);
     const materials=[];group.traverse(o=>{if(o.isMesh||o.isSprite){o.material.transparent=true;materials.push({material:o.material,opacity:o.material.opacity});}});
-    group.visible=false;this.scene.add(group);this.tops.set(player.id,{group,rotor,label,trail,glow,spinHalo,spinBlur,blurMaterials,bladeMaterials,materials,index,contact,pad,sparks,signature:JSON.stringify([player.parts,player.color,player.name]),railBurst:null,history:[],lastTrail:-Infinity,outAt:null,recoil:null,spin:0});return this.tops.get(player.id);
+    group.visible=false;this.scene.add(group);this.tops.set(player.id,{group,pose,rotor,support,label,trail,glow,spinHalo,spinBlur,blurMaterials,bladeMaterials,materials,index,contact,pad,sparks,signature:JSON.stringify([player.parts,player.color,player.name]),railBurst:null,history:[],lastTrail:-Infinity,outAt:null,recoil:null,spin:0});return this.tops.get(player.id);
   }
   removeTop(id,item){
     this.scene.remove(item.group,item.trail,item.contact);item.contact.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});item.trail.geometry.dispose();item.trail.material.dispose();
@@ -146,7 +153,7 @@ export class Arena {
   idle(){
     this.frame=null;this.playbackFrame=null;this.history=[];this.endReplay();this.timeline.reset();this.clock=0;
     this.timeline.setPaused(this.paused||document.hidden,performance.now());this.clearEffects();
-    for(const item of this.tops.values())item.rotor.rotation.set(0,0,0);
+    for(const item of this.tops.values()){item.pose.quaternion.identity();item.rotor.rotation.set(0,0,0);}
   }
   makeEffects(){
     this.effects=[];
@@ -167,7 +174,8 @@ export class Arena {
     effect.born=this.clock;effect.strength=strength;effect.nx=Number.isFinite(event.nx)?event.nx:1;effect.nz=Number.isFinite(event.nz)?event.nz:0;
     effect.group.position.set(event.x,(Number.isFinite(event.y)?event.y:this.surfaceY(event.x,event.z))+.48,event.z);effect.group.visible=true;
     if(!this.reduced&&Number.isFinite(event.nx)&&Number.isFinite(event.nz)){
-      for(const [id,sign] of [[event.aId,-1],[event.bId,1]]){const item=this.tops.get(id);if(item)item.recoil={born:this.clock,x:event.nx*sign,z:event.nz*sign,strength};}
+      const contacts=event.type==='rail-bounce'?[[event.id,-1]]:[[event.aId,-1],[event.bId,1]];
+      for(const [id,sign] of contacts){const item=this.tops.get(id);if(item)item.recoil={born:this.clock,x:event.nx*sign,z:event.nz*sign,strength};}
     }
     if(!this.reduced)this.shake={born:this.clock,strength};
     if(notify)this.onImpact?.(event);
@@ -186,7 +194,8 @@ export class Arena {
     const active=Boolean(top?.alive&&top.railActive),flare=Math.max(0,1-age/.24);
     item.contact.visible=Boolean(top?.alive&&(active||flare));if(!item.contact.visible)return;
     const length=Math.hypot(top.x,top.z)||1,nx=top.x/length,nz=top.z/length,dir=top.railDir||1;
-    item.contact.position.set(top.x+nx*.38,(top.y??this.surfaceY(top.x,top.z))+RAIL_CONTACT_HEIGHT,top.z+nz*.38);
+    item.contact.position.set(nx*.38,RAIL_CONTACT_HEIGHT-item.support.tipY,nz*.38)
+      .applyQuaternion(item.pose.quaternion).add(item.group.position);
     if(!this.railLightActive){this.contactLight.position.copy(item.contact.position);this.contactLight.position.y+=.12;this.contactLight.intensity=this.reduced?.45:3.8;this.railLightActive=true;}
     item.pad.material.opacity=(active?.32:0)+flare*.3;item.pad.scale.setScalar(this.reduced?1:1+flare*.5);
     for(let i=0;i<item.sparks.length;i++){
@@ -203,7 +212,7 @@ export class Arena {
     // Sample by elapsed time, not refresh rate, and never bridge a teleport/replay.
     const last=history.at(-1);
     if(last&&Math.hypot(top.x-last.x,top.z-last.z)>2)history.length=0;
-    if(this.clock-item.lastTrail>=1/60){history.push({x:top.x,y:(top.y??this.surfaceY(top.x,top.z))+.035,z:top.z,t:this.clock});item.lastTrail=this.clock;}
+    if(this.clock-item.lastTrail>=1/60){history.push({x:top.x,y:item.group.position.y+.035,z:top.z,t:this.clock});item.lastTrail=this.clock;}
     while(history.length>TRAIL_POINTS||history.length&&this.clock-history[0].t>.30)history.shift();
     item.trail.visible=speed>.8&&history.length>1;
     if(!item.trail.visible)return;
@@ -258,7 +267,7 @@ export class Arena {
             if(event.type==='hit')this.impact(event);
             else if(event.type==='rail')this.rail(event);
             else if(event.type==='pocket')this.pocket(event);
-            else if(['shield','land','pocket-impact'].includes(event.type)){this.impact(event);if(event.type==='shield')this.onShield?.(event);}
+            else if(['shield','land','pocket-impact','rail-bounce'].includes(event.type)){this.impact(event);if(event.type==='shield')this.onShield?.(event);}
             else if(event.type==='out')this.onOut?.(event);
             else if(event.type==='ringout'){this.onRingout?.(event);if(!this.reduced)this.startReplay(event);}
           }
@@ -269,7 +278,7 @@ export class Arena {
         const replay=this.replay;frame=replay.sequence.sample(replay.elapsed);
         this.clock=replay.sequence.start+replay.elapsed*replay.sequence.rate;
         for(const event of frame?.events||[]){
-          if(event.type==='hit')this.impact(event,false);else if(event.type==='rail')this.rail(event,false);else if(event.type==='pocket')this.pocket(event,false);
+          if(event.type==='hit'||event.type==='rail-bounce')this.impact(event,false);else if(event.type==='rail')this.rail(event,false);else if(event.type==='pocket')this.pocket(event,false);
         }
       }
     }
@@ -290,10 +299,6 @@ export class Arena {
       if(this.waitingForLaunch||!frame||!top||(this.activeIds&&!this.activeIds.includes(id))){
         item.group.visible=false;item.trail.visible=false;item.contact.visible=false;continue;
       }
-      let x,z;
-      if(top){x=top.x;z=top.z;}
-      else{const angle=item.index/Math.max(this.players.length,1)*Math.PI*2;x=Math.sin(angle)*this.arenaRadius*.66;z=Math.cos(angle)*this.arenaRadius*.66;}
-      item.group.position.set(x,Number.isFinite(top?.y)?top.y:this.surfaceY(x,z)-(top?.pocketDepth||0),z);
       const dead=top&&!top.alive;
       if(dead&&item.outAt===null)item.outAt=this.clock;
       if(!dead)item.outAt=null;
@@ -319,8 +324,33 @@ export class Arena {
         }
         const lean=Math.hypot(leanX,leanZ);if(lean>.14){leanX*=.14/lean;leanZ*=.14/lean;}
       }
-      item.rotor.rotation.x=leanX;item.rotor.rotation.z=leanZ;this.drawTrail(item,top);this.drawRail(item,top);
+      this.placeTop(item,top,leanX,leanZ);this.drawTrail(item,top);this.drawRail(item,top);
     }
     this.drawEffects();this.renderer.render(this.scene,this.camera);
+  }
+  placeTop(item,top,leanX,leanZ){
+    const {x,z}=top,radius=Math.hypot(x,z),rim=this.arenaRadius;
+    const recessed=top.pocketActive||top.pocketDepth>0;
+    const inBowl=!recessed&&radius<=rim;
+    const shoulder=inBowl||recessed?null:shoulderHeight(x,z,rim);
+    const floor=inBowl?this.surfaceY(x,z):shoulder??this.pocketFloor;
+    const y=Number.isFinite(top.y)?top.y:(shoulder??(this.surfaceY(x,z)-(top.pocketDepth||0)));
+    // The static bank lean fades during takeoff and through the crest. Spin
+    // is local to the tip, so turning the blade cannot rotate the downhill axis.
+    const contact=1-THREE.MathUtils.smoothstep(y-floor,0,.24);
+    const slope=inBowl?surfaceSlope(x,z,rim):0;
+    const bankLean=Math.min(.21,.24*Math.atan(slope))*contact*THREE.MathUtils.smoothstep(rim-radius,0,.12);
+    this.bankAxis.set(-z/(radius||1),0,x/(radius||1));
+    item.pose.quaternion.setFromAxisAngle(this.bankAxis,bankLean);
+    item.pose.quaternion.multiply(this.rockRotation.setFromEuler(this.rockEuler.set(leanX,0,leanZ)));
+    const skin=inBowl?bowlSkinY(x,z,rim):floor;
+    const support=inBowl||shoulder!==null?bowlSupportY(item.support,item.pose.quaternion,x,z,rim):
+      floor+flatContactY(item.support,item.pose.quaternion);
+    const rest=top.settling||!top.alive?1-clamp((top.angularSpeed||0)/(top.settleStartSpeed||10),0,1):0;
+    const contactSupport=rest>0?THREE.MathUtils.lerp(support,restingSupportY(item.support,item.pose.quaternion,item.rotor.rotation.y,x,z,rim,inBowl||shoulder!==null?null:floor),rest):support;
+    item.group.position.set(x,Math.max(contactSupport,y+(skin-floor)*contact),z);
+    item.glow.quaternion.setFromAxisAngle(this.bankAxis,Math.atan(slope)).multiply(this.floorRotation);
+    item.glow.position.y=skin-item.group.position.y+.015;
+    item.glow.material.opacity*=contact;
   }
 }

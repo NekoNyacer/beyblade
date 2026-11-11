@@ -1,0 +1,20 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0b1019"><title>無限拉環｜手機控制器</title><link rel="stylesheet" href="/assets/play.css"><link rel="stylesheet" href="/assets/launch-screen.css"><link rel="stylesheet" href="/assets/flexible-ripcord.css"></head><body class="launch-mode"><main><section id="player-panel">      <div id="launcher-screen">
+        <h1 id="phase-title" class="sr-only">握住拉環，向右抽出</h1>
+        <div class="launch-heading"><strong class="title-ribbon"><span>準備發射</span><i>LAUNCH</i></strong><p>握住拉環，向右抽到底</p></div>
+        <output id="launch-cue" aria-live="polite" aria-atomic="true"></output>
+        <div id="ripcord" class="ripcord">
+          <div class="launch-orbit" aria-hidden="true"></div>
+          <div class="pull-track" aria-hidden="true"><svg viewBox="0 0 240 100" preserveAspectRatio="none"><path d="m36 18 32 32-32 32m60-64 32 32-32 32m60-64 32 32-32 32"/></svg></div>
+          <div class="launcher-top" aria-hidden="true"><div id="loaded-top"></div></div>
+          <div class="launcher-body" aria-hidden="true"><span></span></div>
+          <div class="cord-assembly">
+            <div class="cord-strip" aria-hidden="true"></div>
+            <button id="handle" type="button" aria-label="握住拉環向右抽到底；鍵盤按 Enter 或空白鍵發射" aria-disabled="true">
+              <svg viewBox="0 0 180 180" aria-hidden="true"><defs><linearGradient id="grip-metal" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#ff9b9e"/><stop offset=".14" stop-color="#ff4050"/><stop offset=".48" stop-color="#ce071d"/><stop offset=".72" stop-color="#7e0518"/><stop offset="1" stop-color="#f12c40"/></linearGradient><linearGradient id="grip-edge" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd6d7"/><stop offset=".3" stop-color="#ff5e68"/><stop offset=".7" stop-color="#a0061c"/><stop offset="1" stop-color="#ff7280"/></linearGradient></defs><path d="M17 69h27v42H17L4 101V79Z" fill="#c50820" stroke="#ff6673" stroke-width="2"/><path fill="url(#grip-metal)" stroke="url(#grip-edge)" stroke-width="4" fill-rule="evenodd" d="m90 7 32 6 26 20 18 28 7 29-7 32-18 26-26 19-32 6-31-6-27-19-19-26L7 90l6-29 19-28 27-20Zm0 31a52 52 0 1 0 0 104 52 52 0 0 0 0-104Z"/><circle cx="90" cy="90" r="58" fill="none" stroke="#ff6872" stroke-width="3"/><circle cx="90" cy="90" r="51" fill="none" stroke="#850417" stroke-width="5"/><path d="m59 13 6 14m57-14-6 14m32 6-11 13m29 15-16 6m16 55-15-6m-3 32-12-12m-14 31-6-16m-57 16 6-16m-33-3 12-12m-31-14 16-6m-16-55 16 6m3-34 12 13" fill="none" stroke="#a00a20" stroke-width="4"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="launch-instruction"><strong id="launch-readiness"><span id="launch-readiness-label">待機</span><b id="launch-readiness-code">READY</b></strong><small id="launch-help">連線後可無限次試拉</small></div>
+        <p id="launch-status" class="sr-only" role="status"></p>
+      </div>
+<p id="player-error" class="error" role="alert"></p></section></main><script type="module" src="/assets/pull-phone.js"></script></body></html>

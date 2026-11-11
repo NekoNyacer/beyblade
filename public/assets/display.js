@@ -2,6 +2,8 @@ import { $, esc, connect, audio, phaseText } from './net.js';
 import {spinSpeed} from './rail-config.js';
 import { Arena } from './arena.js';
 import { FrameCursor } from './motion.js';
+import { renderBracket } from './bracket.js';
+import { renderVersus } from './versus.js';
 const arena=new Arena($('arena')),sound=audio(),params=new URLSearchParams(location.search),room=params.get('room'),preview=params.get('preview');
 if(params.has('lab'))document.body.classList.add('launch-test-display');
 let state,frame,offset=0,lastCount,lastResultRound,fixture,cursor,paused=false,elapsed=0,lastTick=performance.now();
@@ -14,6 +16,14 @@ arena.onPocket=e=>{$('commentary').textContent=name(e.id)+(e.phase==='enter'?' �
 arena.onShield=e=>{$('commentary').textContent=name(e.id)+' 撞上護罩！反彈耗損轉速';};
 arena.onReplayChange=()=>clock();
 function name(id){return state?.players.find(p=>p.id===id)?.name||'待定';}
+function showVersus(show){
+ const panel=$('versus');
+ if(!show){panel.hidden=true;return;}
+ const players=state.round.playerIds.map(id=>state.players.find(p=>p.id===id));
+ if(players.some(p=>!p)){panel.hidden=true;return;}
+ renderVersus(panel,players);
+ panel.hidden=false;
+}
 function deferResult(){return !!arena.renderer&&(arena.replaying||!!(frame?.done&&!arena.playbackFrame?.done));}
 function receive(msg){
  if(msg.type==='state'){state=msg.state;offset=state.serverTime-Date.now();render();}
@@ -31,6 +41,8 @@ if(preview){
  if(room)connect(room,'display',params.get('invite'),receive,online=>{$('connection').textContent=online?'現場連線':'訊號中斷，正在重新連線';$('connection').classList.toggle('online',online);});else $('center-message').textContent='請從主持控制台開啟投影';
 }
 function render(){
+ $('display-schedule').classList.toggle('bracket-dense',state.players.length>8);
+ if(state.mode==='tournament')renderBracket($('display-bracket'),state);
  arena.waitingForLaunch=['lobby','ready','countdown','shoot'].includes(state.phase);
  const active=['ready','countdown','shoot','running','result','finished'].includes(state.phase);document.body.classList.toggle('battle',active);$('invite').hidden=active;$('phase-heading').textContent=phaseText[state.phase];$('mode-label').textContent=state.mode==='brawl'?'全員混戰 · 最後一人勝出':'一對一淘汰賽 · 勝者晉級';arena.roster(state.players);arena.activeIds=state.phase==='lobby'?null:state.round?.playerIds;
  if(['lobby','ready','countdown'].includes(state.phase)&&!state.recovered){arena.idle();frame=null;}
@@ -48,11 +60,15 @@ function updateFrame(){
 }
 function clock(){
  if(!state||paused||document.hidden)return;updateFrame();let html='',cue='';const now=Date.now()+offset;
+ const intro=state.phase==='countdown'&&state.mode==='tournament'&&state.round?.playerIds?.length===2&&now<state.round.countdownAt;
+ showVersus(intro);
  if(state.phase==='ready')html='準備開戰<small>確認組裝 · 等待主持人倒數</small>';
- if(state.phase==='countdown'){cue=now<state.round.countdownAt+3000?String(Math.max(1,Math.ceil((state.round.countdownAt+3000-now)/1000))):'GO——';html=cue;}
+ if(state.phase==='countdown'&&!intro){cue=now<state.round.countdownAt+3000?String(Math.max(1,Math.ceil((state.round.countdownAt+3000-now)/1000))):'GO——';html=cue;}
  if(state.phase==='shoot'||state.phase==='running'&&now<state.round.shootAt+1200){cue='SHOOT!';html='SHOOT!';}
  if(cue!==lastCount){if(cue)sound.tone(cue==='SHOOT!'?880:cue==='GO——'?440:600,cue==='GO——'?1.8:.25,.1,'triangle');lastCount=cue;}
  const results=['result','finished'].includes(state.phase);
+ const showBracket=results&&state.mode==='tournament'&&state.matches.length>0&&!deferResult();
+ $('display-schedule').hidden=!showBracket;document.body.classList.toggle('bracket-results',showBracket);
  if(arena.renderer&&arena.replaying){html='<small>出界重播 · 慢動作</small>';$('result').hidden=true;}else if(results){$('result').hidden=deferResult();if(!deferResult()&&lastResultRound!==state.round.id){lastResultRound=state.round.id;sound.tone(523,.2);setTimeout(()=>sound.tone(659,.2),150);setTimeout(()=>sound.tone(784,.65),300);}}
  const el=$('center-message');el.classList.toggle('launch-cue',!!cue);el.classList.toggle('go-cue',cue==='GO——');if(el.innerHTML!==html)el.innerHTML=html;
 }

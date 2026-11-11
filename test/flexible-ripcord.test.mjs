@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {cordCurve} from '../public/assets/flexible-ripcord.js';
+test('exposed cord keeps its mouth fixed while the grip bends above and below',()=>{const mouth={x:100,y:200};const up=cordCurve(mouth,{x:330,y:120}),down=cordCurve(mouth,{x:330,y:280}),flat=cordCurve(mouth,{x:330,y:200});for(const path of [up,down,flat])assert.ok(path.startsWith('M 100 200 C 138 200 '));assert.ok(up.endsWith('330 120'));assert.ok(down.endsWith('330 280'));assert.ok(flat.endsWith('330 200'));});

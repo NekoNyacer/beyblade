@@ -1,0 +1,1 @@
+All 72 transparent 1024px PNGs rendered locally from public/assets/parts.js makePart() and part-catalog.js assemblyOffsets(). Nine actual parts and all 27 assembled combinations, each rendered in red and blue without tinting the metal. Red/blue opponent colors are UI identification treatments. Rebuild with node scripts/render-ui-art.mjs after geometry changes.

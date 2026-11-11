@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0a0e17"><title>拉環手感測試｜戰鬥陀螺</title><link rel="stylesheet" href="/assets/play.css"><link rel="stylesheet" href="/assets/pull-test.css"><link rel="stylesheet" href="/assets/launch-screen.css"><link rel="stylesheet" href="/assets/flexible-ripcord.css"></head>
+<body class="feel-page"><main>
+<header><h1>拉環手感測試</h1><nav><a href="#phone-share">手機掃碼加入</a> · <a href="/launch-test">雙機實戰測試</a></nav></header>
+<section class="feel-arena" aria-label="拉環發射的即時三維戰鬥場"><div id="feel-arena"></div><div class="arena-caption"><span>紅色：你的拉環</span><span>藍色：固定標準對手</span></div><output id="attempt">尚未發射</output></section>
+<section class="feel-controls" aria-label="拉環控制"><div class="pull-heading"><h2>握住拉環，向右抽到底</h2><button id="reset-pull" type="button" class="secondary">清空戰鬥場</button></div><p class="pull-hint">慢拉、快拉、向右上或右下斜拉，直接比較入場軌跡。</p><div class="mechanism">        <div id="ripcord" class="ripcord active">
+
+          <div class="pull-track" aria-hidden="true"><svg viewBox="0 0 240 100" preserveAspectRatio="none"><path d="m36 18 32 32-32 32m60-64 32 32-32 32m60-64 32 32-32 32"/></svg></div>
+          <div class="launcher-top" aria-hidden="true"><div id="loaded-top"></div></div>
+          <div class="launcher-body" aria-hidden="true"><span></span></div>
+          <div class="cord-assembly">
+            <div class="cord-strip" aria-hidden="true"></div>
+            <button id="handle" type="button" aria-label="握住拉環向右抽到底；鍵盤按 Enter 或空白鍵發射" aria-disabled="false">
+              <svg viewBox="0 0 180 180" aria-hidden="true"><defs><linearGradient id="grip-metal" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#ff9b9e"/><stop offset=".14" stop-color="#ff4050"/><stop offset=".48" stop-color="#ce071d"/><stop offset=".72" stop-color="#7e0518"/><stop offset="1" stop-color="#f12c40"/></linearGradient><linearGradient id="grip-edge" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd6d7"/><stop offset=".3" stop-color="#ff5e68"/><stop offset=".7" stop-color="#a0061c"/><stop offset="1" stop-color="#ff7280"/></linearGradient></defs><path d="M17 69h27v42H17L4 101V79Z" fill="#c50820" stroke="#ff6673" stroke-width="2"/><path fill="url(#grip-metal)" stroke="url(#grip-edge)" stroke-width="4" fill-rule="evenodd" d="m90 7 32 6 26 20 18 28 7 29-7 32-18 26-26 19-32 6-31-6-27-19-19-26L7 90l6-29 19-28 27-20Zm0 31a52 52 0 1 0 0 104 52 52 0 0 0 0-104Z"/><circle cx="90" cy="90" r="58" fill="none" stroke="#ff6872" stroke-width="3"/><circle cx="90" cy="90" r="51" fill="none" stroke="#850417" stroke-width="5"/><path d="m59 13 6 14m57-14-6 14m32 6-11 13m29 15-16 6m16 55-15-6m-3 32-12-12m-14 31-6-16m-57 16 6-16m-33-3 12-12m-31-14 16-6m-16-55 16 6m3-34 12 13" fill="none" stroke="#a00a20" stroke-width="4"/></svg>
+            </button>
+          </div>
+        </div>
+</div><p id="feel-status" role="status">請用手機掃碼拉環；主畫面會即時顯示入場。</p><div class="readings" aria-label="最近一次拉環數據"><div><span>拉速</span><output id="speed">—</output></div><div><span>手勢角度</span><output id="angle">—</output></div><div><span>入場初速</span><output id="velocity">—</output></div><div><span>初始轉速</span><output id="rpm">—</output></div></div><p id="feel-error" role="alert"></p><p class="practice-note">獨立練習，不影響正式比賽。固定場地、組裝與起點，僅依這次手勢改變紅色陀螺。鍵盤 Enter／空白鍵可標準發射。</p></section>
+<details id="phone-share" class="phone-share" open><summary>手機掃碼，主畫面觀看</summary><p>手機和電腦連到同一個 Wi-Fi，再掃碼。手機維持標準拉環介面，陀螺入場與轉動只在這個主畫面顯示。</p><p id="feel-connection" role="status">正在建立手機連線…</p><label for="feel-network">連線網址</label><select id="feel-network"></select><img hidden id="feel-qr" alt="手機開啟拉環手感測試" width="160" height="160"><a id="feel-link"></a></details>
+</main><script type="module" src="/assets/pull-test.js"></script></body></html>

@@ -1,5 +1,5 @@
 import * as THREE from '/vendor/three.module.js';
-import {surfaceHeight} from './rail-config.js';
+import {surfaceHeight,SHOULDER_PROFILE,BOWL_SKIN_OFFSET,CENTER_SKIN_Y,SEAM_CENTER_Y,SEAM_RADIUS} from './rail-config.js';
 
 // The playable surface is continuous: every pocket starts beyond the raised gear crest.
 export function buildStadium(stage, rails, config) {
@@ -17,28 +17,29 @@ export function buildStadium(stage, rails, config) {
   const quad=(vertices,material,parent)=>{const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.setIndex([0,1,2,0,2,3]);geometry.computeVertexNormals();const mesh=add(geometry,material,parent);mesh.receiveShadow=true;return mesh;};
   const outline=new THREE.Shape(),size=r+1.03,cut=.72;
   outline.moveTo(-size+cut,-size);outline.lineTo(size-cut,-size);outline.lineTo(size,-size+cut);outline.lineTo(size,size-cut);outline.lineTo(size-cut,size);outline.lineTo(-size+cut,size);outline.lineTo(-size,size-cut);outline.lineTo(-size,-size+cut);outline.closePath();
-  const chassisGeometry=new THREE.ExtrudeGeometry(outline,{depth:.25,bevelEnabled:true,bevelThickness:.08,bevelSize:.10,bevelSegments:3,steps:1});chassisGeometry.rotateX(-Math.PI/2);
+  // Keep the top of the underlying chassis below the recessed catch floors.
+  const chassisGeometry=new THREE.ExtrudeGeometry(outline,{depth:.11,bevelEnabled:true,bevelThickness:.08,bevelSize:.10,bevelSegments:3,steps:1});chassisGeometry.rotateX(-Math.PI/2);
   const chassis=add(chassisGeometry,dark,stage,-1.12);chassis.receiveShadow=true;chassis.castShadow=true;
   const deck=new THREE.Shape(outline.getPoints()),hole=new THREE.Path();hole.absarc(0,0,r+.94,0,Math.PI*2,true);deck.holes.push(hole);
   const deckGeometry=new THREE.ExtrudeGeometry(deck,{depth:.08,bevelEnabled:true,bevelThickness:.035,bevelSize:.04,bevelSegments:2,steps:1});deckGeometry.rotateX(-Math.PI/2);
   add(deckGeometry,silver,stage,rimHeight-.35).receiveShadow=true;
 
-  const profile=[new THREE.Vector2(0,-.035),new THREE.Vector2(flatRadius,-.035)];
-  for(let i=1;i<=56;i++){const radius=flatRadius+(r-flatRadius)*i/56;profile.push(new THREE.Vector2(radius,surfaceHeight(radius,0,r)-.035));}
+  const profile=[new THREE.Vector2(0,BOWL_SKIN_OFFSET),new THREE.Vector2(flatRadius,BOWL_SKIN_OFFSET)];
+  for(let i=1;i<=56;i++){const radius=flatRadius+(r-flatRadius)*i/56;profile.push(new THREE.Vector2(radius,surfaceHeight(radius,0,r)+BOWL_SKIN_OFFSET));}
   const bowl=add(new THREE.LatheGeometry(profile,160),basinMaterial);bowl.name='battle-bowl';bowl.receiveShadow=true;
   bowl.userData={flatRadius,rimHeight,crestRadius:r};
-  const center=add(new THREE.CircleGeometry(flatRadius,128),new THREE.MeshPhysicalMaterial({color:0xe5e8ef,metalness:.16,roughness:.42,clearcoat:.45}),stage,-.031);
+  const center=add(new THREE.CircleGeometry(flatRadius,128),new THREE.MeshPhysicalMaterial({color:0xe5e8ef,metalness:.16,roughness:.42,clearcoat:.45}),stage,CENTER_SKIN_Y);
   center.rotation.x=-Math.PI/2;center.receiveShadow=true;center.name='flat-battle-center';
-  ring(flatRadius,.012,new THREE.MeshStandardMaterial({color:0x8295aa,metalness:.4,roughness:.45}),-.018);
+  ring(flatRadius,SEAM_RADIUS,new THREE.MeshStandardMaterial({color:0x8295aa,metalness:.4,roughness:.45}),SEAM_CENTER_Y);
 
   // Exterior shoulders and recessed catches never cut through the bowl or its slope.
   for(let i=0;i<ringOutAngles.length;i++){
     const a=ringOutAngles[i],from=a+ringOutHalfWidth,end=ringOutAngles[(i+1)%ringOutAngles.length]+(i===ringOutAngles.length-1?Math.PI*2:0)-ringOutHalfWidth;
-    const lipProfile=[new THREE.Vector2(r,rimHeight-.035),new THREE.Vector2(r+.12,rimHeight-.03),new THREE.Vector2(r+.48,rimHeight-.14),new THREE.Vector2(r+.88,rimHeight-.38),new THREE.Vector2(r+.97,-.74)];
+    const lipProfile=SHOULDER_PROFILE.map(([offset,height])=>new THREE.Vector2(r+offset,height));
     add(new THREE.LatheGeometry(lipProfile,48,Math.PI/2-end,end-from),silver).receiveShadow=true;
     const bay=new THREE.Group();bay.name='impact-pocket';bay.rotation.y=-a;bay.position.set(Math.cos(a)*(r+.43),0,Math.sin(a)*(r+.43));bay.userData={index:i,innerRadius:r+.035};stage.add(bay);
     const halfWidth=Math.sin(ringOutHalfWidth)*(r+.4);
-    add(new THREE.BoxGeometry(.83,.045,halfWidth*2),dark,bay,-.92).receiveShadow=true;
+    add(new THREE.BoxGeometry(.83,.045,halfWidth*2),dark,bay,config.pocketFloor-.045/2).receiveShadow=true;
     quad([.14,-.88,-halfWidth,.51,rimHeight-.38,-halfWidth,.51,rimHeight-.38,halfWidth,.14,-.88,halfWidth],silver,bay);
     for(const side of [-1,1])quad([-.395,rimHeight-.035,side*halfWidth,.51,rimHeight-.38,side*halfWidth,.14,-.88,side*halfWidth,-.395,-.88,side*halfWidth],silver,bay);
   }

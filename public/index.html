@@ -1,8 +1,52 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>戰鬥陀螺｜主持控制台</title><link rel="stylesheet" href="/assets/main.css"></head><body class="host-page"><header class="host-header"><a href="/" class="wordmark">戰鬥陀螺<span>尾牙競技場</span></a><span id="connection" class="connection">尚未開場</span><button id="logout" hidden>登出主持裝置</button><a href="/guide" target="_blank" rel="noopener">活動操作指南</a></header><main>
-<section id="pairing" class="pairing" hidden><h1>遠端主持登入</h1><p>先讓管理者核對這個瀏覽器，再取得限時主持權限。這裡不需要輸入或接收管理金鑰。</p><form id="pair-form"><label for="device-label">這個裝置的稱呼</label><input id="device-label" maxlength="40" value="我的主持裝置" autocomplete="off"><button id="pair-request" class="primary" type="submit">申請主持權限</button></form><div id="pair-code-panel" hidden><p>待核對的配對碼</p><strong id="pair-code"></strong><p id="pair-countdown"></p><p>將配對碼提供給協助部署的人，核對此裝置後再批准。配對碼本身不會授權任何裝置。</p><button id="pair-cancel">取消這次配對</button></div><p id="pair-status" role="status" aria-live="polite">正在確認登入狀態…</p><button id="pair-retry" hidden>重新確認連線</button></section><section id="setup" class="setup" hidden><div><h1>今晚，誰能轉到最後？</h1><p>一台主機，一座競技場。選手掃碼、拉環，接著把全場交給陀螺。</p><form id="create-form"><label for="mode">選擇賽制</label><select id="mode"><option value="brawl">全員混戰 · 最後一人勝出</option><option value="tournament">一對一淘汰賽 · 決出冠軍</option></select><button class="primary" type="submit">建立活動</button></form><p class="subtle">2–16 位選手 · 手機掃碼加入 · 主持人控制開場</p></div><div class="setup-art" aria-hidden="true"><div class="orbit-circle"><span>3</span><b>2</b><i>1</i></div><strong>LET IT<br>SPIN.</strong></div></section>
-<section id="desk" hidden><div class="desk-heading"><div><h1 id="phase-heading">等待選手入場</h1><p id="host-hint">讓選手掃描 QR Code，加入同一個活動。</p></div><div class="toolbar"><button id="open-display">開啟投影畫面 ↗</button><button id="sound">開啟提示音</button></div></div>
-<div class="desk-grid"><section class="controls"><h2>主持流程</h2><div class="room-line">活動代碼 <strong id="room-code"></strong><span id="mode-label"></span></div><div id="next-actions" class="next-actions"></div><p id="pull-count" class="pull-count"></p><div id="recovery" class="notice" hidden></div><div class="secondary-actions"><button id="lock">停止加入</button><button id="demo">加入示範選手</button></div><details><summary>賽制與重置</summary><label for="switch-mode">賽制</label><select id="switch-mode"><option value="brawl">全員混戰</option><option value="tournament">一對一淘汰賽</option></select><button id="change-mode">切換賽制</button><button id="reset" class="danger">回到大廳，清除賽程</button><button id="new-event" class="danger">離開本活動，建立新活動</button></details></section>
-<section class="invite"><h2>手機掃碼入場</h2><img id="qr" alt="選手加入活動的 QR Code" width="200" height="200"><label for="network">手機可連線的主機網址</label><select id="network"></select><a id="join-url" target="_blank" rel="noopener"></a><button id="copy-url">複製選手連結</button><p id="network-hint" class="subtle">本機模式需同一 Wi-Fi；雲端模式請使用已驗證的 HTTPS 活動網址。</p></section>
-<section class="preview"><div class="panel-title"><h2>競技場預覽</h2><span id="live-badge">大廳</span></div><div id="arena"></div><div id="winner-strip" class="winner-strip" hidden></div></section></div>
-<div class="lower-grid"><section><div class="panel-title"><h2>選手名單 <span id="player-count">0</span></h2><span>編號與顏色對應場上的陀螺</span></div><div id="roster" class="roster"></div></section><section><h2 id="schedule-title">賽程與結果</h2><div id="schedule" class="schedule"></div></section></div></section>
-<p id="error" class="error" role="alert" hidden></p></main><script type="module" src="/assets/host.js"></script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090d17">
+  <title>戰鬥陀螺｜主持控制台</title>
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="/assets/bracket.css">
+  <link rel="stylesheet" href="/assets/display-redesign.css">
+  <link rel="stylesheet" href="/assets/host-redesign.css">
+</head>
+<body class="host-page">
+  <header class="host-header">
+    <a href="/" class="wordmark">戰鬥陀螺 <span>對戰控制台</span></a>
+    <span id="connection" class="connection">尚未開場</span>
+    <button id="logout" hidden>登出主持裝置</button>
+    <a href="/guide" target="_blank" rel="noopener">活動操作指南 ↗</a>
+  </header>
+  <main>
+    <section id="pairing" class="pairing" hidden>
+      <h1>遠端主持登入</h1>
+      <p>先讓管理者核對這個瀏覽器，再取得限時主持權限。這裡不需要輸入或接收管理金鑰。</p>
+      <form id="pair-form"><label for="device-label">這個裝置的稱呼</label><input id="device-label" maxlength="40" value="我的主持裝置" autocomplete="off"><button id="pair-request" class="primary" type="submit">申請主持權限</button></form>
+      <div id="pair-code-panel" hidden><p>待核對的配對碼</p><strong id="pair-code"></strong><p id="pair-countdown"></p><p>將配對碼提供給協助部署的人，核對此裝置後再批准。配對碼本身不會授權任何裝置。</p><button id="pair-cancel">取消這次配對</button></div>
+      <p id="pair-status" role="status" aria-live="polite">正在確認登入狀態…</p><button id="pair-retry" hidden>重新確認連線</button>
+    </section>
+    <section id="setup" class="setup" hidden>
+      <div class="setup-copy">
+        <p class="setup-caption">SPINNING TOP BATTLE / HOST CONTROL</p>
+        <h1>準備好了嗎？<br><span>讓對決開始。</span></h1>
+        <p>建立活動，讓選手掃碼加入。<br>大螢幕和手機，一起準備開戰。</p>
+        <form id="create-form"><label for="mode">選擇賽制</label><select id="mode"><option value="tournament">一對一淘汰賽 · 決出冠軍</option><option value="brawl">全員混戰 · 最後一人勝出</option></select><button class="primary" type="submit">建立活動 <span aria-hidden="true">→</span></button></form>
+        <p class="subtle">2–16 位選手 · 手機掃碼加入 · 主持人控制開場</p>
+      </div>
+      <div class="setup-art" aria-hidden="true"><img src="/assets/art/top-000.png" width="1024" height="1024" alt=""><strong>LET IT<br>SPIN.</strong></div>
+    </section>
+    <section id="desk" hidden>
+      <nav class="desk-nav" aria-label="主持控制台"><a href="#matchup" class="active"><span>對戰</span><small>MATCH</small></a><a href="#players-panel"><span>選手</span><small>PLAYERS</small></a><a href="#schedule-panel"><span>賽程</span><small>BRACKET</small></a><a href="#host-settings"><span>設定</span><small>SETTINGS</small></a></nav>
+      <div class="desk-heading"><div><h1 id="phase-heading">等待選手入場</h1><p id="host-hint">讓選手掃描 QR Code，加入同一個活動。</p></div><div class="toolbar"><button id="open-display">開啟投影畫面 ↗</button><button id="sound">開啟提示音</button></div></div>
+      <section id="matchup" class="matchup" aria-labelledby="matchup-title"><div class="section-heading"><h2 id="matchup-title">本場對決</h2><span>LIVE MATCH</span></div><div id="featured-players" class="featured-players"></div></section>
+      <div class="desk-grid">
+        <section class="controls"><h2>主持流程</h2><div class="room-line">活動代碼 <strong id="room-code"></strong><span id="mode-label"></span></div><div id="next-actions" class="next-actions"></div><p id="pull-count" class="pull-count"></p><div id="recovery" class="notice" hidden></div><div class="secondary-actions"><button id="lock">停止加入</button><button id="demo">加入示範選手</button></div><details id="host-settings"><summary>賽制與重置</summary><label for="switch-mode">賽制</label><select id="switch-mode"><option value="brawl">全員混戰</option><option value="tournament">一對一淘汰賽</option></select><button id="change-mode">切換賽制</button><button id="reset" class="danger">回到大廳，清除賽程</button><button id="new-event" class="danger">離開本活動，建立新活動</button></details></section>
+        <section class="invite"><h2>手機掃碼入場</h2><img id="qr" alt="選手加入活動的 QR Code" width="200" height="200"><details class="network-details"><summary>連線網址與 QR 設定</summary><label for="network">手機可連線的主機網址</label><select id="network"></select><a id="join-url" target="_blank" rel="noopener"></a><button id="copy-url">複製選手連結</button><p id="network-hint" class="subtle">本機模式需同一 Wi-Fi；雲端模式請使用已驗證的 HTTPS 活動網址。</p></details></section>
+        <section class="preview"><div class="panel-title"><h2>舞台預覽</h2><span id="live-badge">大廳</span></div><div class="preview-stage"><div id="arena"></div><div id="host-versus" class="versus" aria-label="舞台對戰介紹預覽" hidden></div></div><div id="winner-strip" class="winner-strip" hidden></div></section>
+      </div>
+      <div class="lower-grid"><section id="players-panel"><div class="panel-title"><h2>選手名單 <span id="player-count">0</span></h2><span>編號與顏色對應場上的陀螺</span></div><div id="roster" class="roster"></div></section><section id="schedule-panel" class="schedule-panel"><h2 id="schedule-title">賽程與結果</h2><div id="schedule" class="schedule"></div></section></div>
+    </section>
+    <p id="error" class="error" role="alert" hidden></p>
+  </main>
+  <script type="module" src="/assets/host.js"></script>
+</body></html>

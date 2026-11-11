@@ -1,5 +1,8 @@
+import {FlexibleRipcord} from './flexible-ripcord.js';
+import {LaunchScreenGate} from './launch-screen.js';
 import {appendRipcordEvent,measureRipcord} from './ripcord.js';
 import { PartPreview, LauncherPreview } from './parts.js';
+import { partDefinition } from './part-catalog.js';
 'use strict';
 (() => {
   const $ = id => document.getElementById(id);
@@ -10,7 +13,17 @@ import { PartPreview, LauncherPreview } from './parts.js';
   let serverOffset = 0;
   let attempts = 0, connecting = false, joined = false, pendingRound = null, gesture = null;
   let online = false, releasedRound = null, stroke = 0;
+  const screenGate=new LaunchScreenGate({onchange:ready=>{if(!ready)stopGesture();launchClock();}});
+  const flexibleCord=new FlexibleRipcord($('ripcord'));
   const launcherPreview=new LauncherPreview($('loaded-top'));
+  const combinationPreview=new LauncherPreview($('combination-preview'));
+  if(combinationPreview.camera){
+    combinationPreview.camera.position.set(0,1.45,2.05);
+    combinationPreview.camera.lookAt(0,.35,0);
+  }else{
+    $('combination-preview').textContent='3D 預覽無法顯示';
+    $('combination-preview').classList.add('preview-fallback');
+  }
   let launcherParts='';
   const setText = (id, value) => { if ($(id).textContent !== value) $(id).textContent = value; };
   const error = message => setText(joined ? 'player-error' : 'join-error', message || '');
@@ -33,7 +46,7 @@ import { PartPreview, LauncherPreview } from './parts.js';
   }
   function canPull() {
     const now=Date.now()+serverOffset;
-    return online && ['countdown','shoot','running'].includes(state?.phase) && now >= state.round.shootAt && !deadlinePassed() && !state.round.launchResumed
+    return screenGate.ready && online && ['countdown','shoot','running'].includes(state?.phase) && now >= state.round.shootAt && !deadlinePassed() && !state.round.launchResumed
       && state.round?.playerIds?.includes(identity?.playerId) && !state.round.pulledIds?.includes(identity.playerId)
       && pendingRound !== state.round.id && releasedRound !== state.round.id;
   }
@@ -41,7 +54,7 @@ import { PartPreview, LauncherPreview } from './parts.js';
     const previous=gesture;gesture=null;
     if(previous && $('handle').hasPointerCapture(previous.id))$('handle').releasePointerCapture(previous.id);
     $('ripcord').classList.remove('dragging');
-    if(reset)$('ripcord').style.setProperty('--pull','0px');
+    if(reset){$('ripcord').style.setProperty('--pull','0px');$('ripcord').style.setProperty('--pull-y','0px');}
   }
   function sizeLauncher(){
     if($('launcher-screen').hidden)return;
@@ -61,10 +74,15 @@ import { PartPreview, LauncherPreview } from './parts.js';
     if(!joined||!state)return;
     const active=state.round?.playerIds?.includes(identity.playerId),now=Date.now()+serverOffset;
     let cue='';
-    if(active&&state.phase==='countdown')cue=now<state.round.countdownAt+3000?String(Math.max(1,Math.ceil((state.round.countdownAt+3000-now)/1000))):now<state.round.shootAt?'GO':'SHOOT';
+    if(active&&state.phase==='countdown')cue=now<state.round.countdownAt?'VS':now<state.round.countdownAt+3000?String(Math.max(1,Math.ceil((state.round.countdownAt+3000-now)/1000))):now<state.round.shootAt?'GO':'SHOOT';
     if(active&&['shoot','running'].includes(state.phase)&&now<state.round.deadline)cue='SHOOT';
     setText('launch-cue',cue);
+    setText('launch-help', !online?'連線中斷，正在重新連線':active&&['shoot','running'].includes(state.phase)&&deadlinePassed()?'發射完成，請看大螢幕':active?'等待 SHOOT 出現後發射':'已完成組裝，等待主持人安排對戰');
     const enabled=canPull();
+    const launched=!!state.round&&(releasedRound===state.round.id||state.round.pulledIds?.includes(identity.playerId));
+    setText('launch-readiness-label',!online?'連線中':launched?'已發射':enabled?'向右抽出':'待機');
+    setText('launch-readiness-code',!online?'SYNC':launched?'LAUNCHED':enabled?'SHOOT':'READY');
+    $('ripcord').classList.toggle('active',enabled);
     $('handle').setAttribute('aria-disabled',String(!enabled));
     if(enabled&&gesture&&!gesture.armed){gesture.armed=true;gesture.points=[{x:gesture.start,y:gesture.startY,t:performance.now()}];}
     if(active&&['shoot','running'].includes(state.phase)&&deadlinePassed())releaseLauncher();
@@ -77,8 +95,9 @@ import { PartPreview, LauncherPreview } from './parts.js';
     if(parts!==launcherParts){launcherParts=parts;launcherPreview.set(me?.parts||{blade:0,ratchet:0,bit:0},me?.color||'#55d882');}
     const launchMode=$('assembly').hidden;
     document.body.classList.toggle('launch-mode',launchMode);
-    document.querySelector('meta[name="theme-color"]').content=launchMode?'#080f1c':'#101728';
+    document.querySelector('meta[name="theme-color"]').content=launchMode?'#0b1019':'#10131a';
     $('launcher-screen').hidden=!launchMode;
+    screenGate.setActive(launchMode);
     $('ripcord').classList.toggle('active',canPull());
     const accepted=state?.round?.pulledIds?.includes(identity.playerId);
     if(accepted)releaseLauncher();
@@ -88,23 +107,55 @@ import { PartPreview, LauncherPreview } from './parts.js';
   }
   let draft={blade:0,ratchet:0,bit:0},editing=true,assemblyPending=false,lastParts=null;
   const previews=[];
-  for(const [k,label] of [['blade','Blade'],['ratchet','Ratchet'],['bit','Bit']]){
+  const canEditParts=()=>online&&!assemblyPending&&['lobby','ready','result'].includes(state?.phase);
+  let combinationSignature='';
+  const partLabels={blade:'攻擊環',ratchet:'棘輪',bit:'軸心'};
+  for(const [k,label] of Object.entries(partLabels)){
     const row=document.createElement('div');row.className='part-row';
-    row.innerHTML=`<h2>${label}</h2><div class="part-selector"><button type="button" aria-label="上一個 ${label}">‹</button><div class="part-view"></div><button type="button" aria-label="下一個 ${label}">›</button></div><output></output>`;
-    $('part-rows').append(row);const preview=new PartPreview(row.querySelector('.part-view'),k);previews.push({k,row,preview});
-    row.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{draft[k]=(draft[k]+(i?1:2))%3;drawParts();});
-    let down;row.querySelector('.part-view').onpointerdown=e=>{down=e.clientX;};row.querySelector('.part-view').onpointerup=e=>{if(down!=null&&Math.abs(e.clientX-down)>30){draft[k]=(draft[k]+(e.clientX<down?1:2))%3;drawParts();}down=null;};
+    row.innerHTML=`<h2>${label}<small>${k.toUpperCase()}</small></h2><div class="part-selector"><button type="button" aria-label="上一個 ${label}"><svg viewBox="0 0 20 28" aria-hidden="true"><path d="m15 4-10 10 10 10"/></svg></button><div class="part-view" role="img"></div><button type="button" aria-label="下一個 ${label}"><svg viewBox="0 0 20 28" aria-hidden="true"><path d="m5 4 10 10L5 24"/></svg></button></div><output></output><p class="part-description"></p>`;
+    $('part-rows').append(row);
+    const preview=new PartPreview(row.querySelector('.part-view'),k);
+    if(preview.camera)preview.camera.fov=29;
+    previews.push({k,row,preview});
+    const change=direction=>{if(!canEditParts())return;draft[k]=(draft[k]+direction+3)%3;drawParts();};
+    row.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>change(i?1:-1));
+    let down;
+    const view=row.querySelector('.part-view');
+    view.onpointerdown=e=>{down={x:e.clientX,y:e.clientY};};
+    view.onpointerup=e=>{if(down&&Math.abs(e.clientX-down.x)>30&&Math.abs(e.clientX-down.x)>Math.abs(e.clientY-down.y)){change(e.clientX<down.x?1:-1);}down=null;};
+    view.onpointercancel=()=>{down=null;};
   }
-  function drawParts(){for(const {k,row,preview} of previews){preview.set(draft[k]);row.querySelector('output').textContent=String(draft[k]+1).padStart(2,'0')+' / 03';}}
+  function drawParts(){
+    for(const {k,row,preview} of previews){
+      preview.set(draft[k]);
+      // Keep the actual game meshes; favor the selected part over adjacent options.
+      if(preview.part){preview.part.children.forEach((piece,index)=>{piece.scale.multiplyScalar(index===1?1.18:.78);});preview.render();}
+      const number=String(draft[k]+1).padStart(2,'0');
+      row.querySelector('output').textContent=partDefinition(k,draft[k]).name+' · '+number+' / 03';
+      row.querySelector('.part-description').textContent=partDefinition(k,draft[k]).description;
+      row.querySelector('.part-view').setAttribute('aria-label',partLabels[k]+' '+partDefinition(k,draft[k]).name+'，'+number+'，共三款');
+      if(!preview.renderer)row.querySelector('.part-view').textContent=partLabels[k]+' '+number;
+    }
+    drawCombination();
+    $('combination-summary').innerHTML=Object.entries(partLabels).map(([k,label])=>'<span>'+label+' <b>'+partDefinition(k,draft[k]).shortName+'</b></span>').join('');
+  }
+  function drawCombination(){
+    const color=state?.players?.find(p=>p.id===identity?.playerId)?.color||'#ed2340';
+    const signature=JSON.stringify([draft,color]);
+    if(signature!==combinationSignature){combinationSignature=signature;combinationPreview.set(draft,color);}
+  }
   function renderAssembly(me){
     const signature=JSON.stringify(me?.parts);
     if(assemblyPending&&signature===JSON.stringify(draft)){editing=false;assemblyPending=false;}
     if(signature!==lastParts){lastParts=signature;if(me?.parts){draft={...me.parts};editing=false;assemblyPending=false;drawParts();}}
     const allowed=online&&['lobby','ready','result'].includes(state?.phase);
-    $('assembly').hidden=!(editing&&allowed);
+    $('assembly').hidden=!editing;
+    if(editing)drawCombination();
+    $('random-parts').disabled=assemblyPending||!allowed;
+    for(const {row} of previews)row.querySelectorAll('button').forEach(button=>{button.disabled=assemblyPending||!allowed;});
     $('confirm-parts').disabled=assemblyPending||!allowed;$('assembly-status').textContent=assemblyPending?'正在確認組裝…':'';
   }
-  $('random-parts').onclick=()=>{for(const k of Object.keys(draft))draft[k]=Math.floor(Math.random()*3);drawParts();};
+  $('random-parts').onclick=()=>{if(!canEditParts())return;for(const k of Object.keys(draft))draft[k]=Math.floor(Math.random()*3);drawParts();};
   $('confirm-parts').onclick=()=>{if(socket?.readyState!==WebSocket.OPEN)return;assemblyPending=true;socket.send(JSON.stringify({type:'assemble',parts:draft}));render();};
   drawParts();
   function receiveState(next) {
@@ -160,7 +211,7 @@ import { PartPreview, LauncherPreview } from './parts.js';
       return;
     }
     connecting = true; $('join-button').disabled = true;
-    setText('join-button', identity ? '恢復選手身分…' : '正在加入…'); error('');
+    setText('join-button-label', identity ? '恢復選手身分…' : '正在加入…'); error('');
     try {
       const response = await fetch('/api/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ roomId, name, ...(identity ? {token: identity.token} : {accessToken}) }) });
       const result = await response.json();
@@ -188,7 +239,7 @@ import { PartPreview, LauncherPreview } from './parts.js';
       connecting = false;
     } finally {
       $('join-button').disabled = false;
-      setText('join-button', identity ? '恢復連線' : '加入競技場 ↗');
+      setText('join-button-label', identity ? '恢復連線' : '加入對戰');
     }
   }
   function pull(power,angle=0) {
@@ -216,7 +267,7 @@ import { PartPreview, LauncherPreview } from './parts.js';
   $('retry').addEventListener('click',connect);
   $('handle').addEventListener('pointerdown',event=>{
     const active=state?.round?.playerIds?.includes(identity?.playerId);
-    const canHold=online&&active&&(['ready','countdown'].includes(state.phase)||canPull());
+    const canHold=screenGate.ready&&online&&active&&(['ready','countdown'].includes(state.phase)||canPull());
     if(!canHold||gesture||!event.isPrimary||(event.pointerType==='mouse'&&event.button!==0))return;
     event.preventDefault();sizeLauncher();
     gesture={id:event.pointerId,start:event.clientX,startY:event.clientY,armed:canPull(),points:[],stroke};
@@ -231,6 +282,8 @@ import { PartPreview, LauncherPreview } from './parts.js';
     appendRipcordEvent(gesture.points,event);
     const distance=Math.max(0,Math.min(gesture.stroke,event.clientX-gesture.start));
     $('ripcord').style.setProperty('--pull',distance+'px');
+    const limit=Math.max(12,($('ripcord').clientHeight-document.querySelector('.cord-assembly').offsetHeight)/2-12);
+    $('ripcord').style.setProperty('--pull-y',Math.max(-limit,Math.min(limit,event.clientY-gesture.startY))+'px');
     const result=measureRipcord(gesture.points,gesture.stroke);
     if(result.accepted){pull(result.power,result.angle);navigator.vibrate?.(18);}
   }

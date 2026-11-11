@@ -1,7 +1,7 @@
 export const scenes=[
-{id:'duel',label:'雙人激戰',description:'縮小戰鬥場，觀察高速碰撞與金屬火花。'},
-{id:'rail',label:'齒軌加速',description:'沿綠色齒軌加速，從出口衝回場內。'},
-{id:'pocket',label:'落坑回場',description:'觀察落坑減速，再從斜坡轉回戰鬥場。'},
+{id:'duel',label:'雙人激戰',description:'觀察兩顆陀螺沿坡繞行，回到中央再次交鋒。'},
+{id:'rail',label:'齒軌加速',description:'看陀螺撞齒彈回，以及對準齒縫後沿圈加速。'},
+{id:'pocket',label:'落坑回場',description:'觀察陀螺被對手撞過齒圈，落入外側坑洞後彈回場內。'},
 {id:'stall',label:'坑洞停轉',description:'剩餘轉速不足，陀螺會在坑洞中停轉。'},
 {id:'battle',label:'10人混戰',description:'檢查多人碰撞、軌道與轉速讀數。'},
 {id:'dense',label:'16人混戰',description:'最多人數測試。'},

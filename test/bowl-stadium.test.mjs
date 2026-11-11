@@ -19,12 +19,132 @@ test('the floor is exactly flat centrally and rises continuously to the gear cre
   for(const angle of c.ringOutAngles)assert.ok(Math.abs(surfaceHeight(Math.cos(angle)*c.arenaRadius,Math.sin(angle)*c.arenaRadius,c.arenaRadius)-c.rimHeight)<1e-9);
  }
 });
-test('high spin favors outer circular travel and low spin remains nearly stationary',()=>{
- const high=solo(95),a=high.tops[0];let path=0,radialTravel=0,turn=0;
- for(let i=0;i<200;i++){const x=a.x,z=a.z,r=Math.hypot(x,z),angle=Math.atan2(z,x);stepBattle(high,.01);path+=Math.hypot(a.x-x,a.z-z);radialTravel+=Math.abs((a.x-x)*x+(a.z-z)*z)/r;const delta=Math.atan2(a.z,a.x)-angle;turn+=Math.atan2(Math.sin(delta),Math.cos(delta));assert.equal(a.pocketActive,false);}
- assert.ok(path>7);assert.ok(Math.abs(turn)>2);assert.ok(radialTravel/path<.25);
+test('a slowly climbing high-spin top loses outward speed and rolls back down the slope',()=>{
+ const battle=solo(95,2.4,0),top=battle.tops[0];
+ top.vx=.5;
+ const initialRadius=top.x,initialHeight=top.y;
+ let maxRadius=initialRadius;
+ for(let i=0;i<50;i++){
+  stepBattle(battle,.01);
+  maxRadius=Math.max(maxRadius,Math.hypot(top.x,top.z));
+  if(i===0)assert.ok(top.vx<.5,'the slope opposes uphill travel immediately');
+ }
+ assert.ok(maxRadius<initialRadius+.08,'a slow approach climbs only a short distance');
+ assert.ok(Math.hypot(top.x,top.z)<initialRadius&&top.y<initialHeight);
+});
+test('a freely circling high-spin top sweeps into the central flat',()=>{
+ for(const direction of [-1,1]){
+  const battle=solo(95,2.5,direction*4.5),top=battle.tops[0],rail=railConfigForCount(2);
+  let path=0,insideFlat=0;
+  for(let i=0;i<400;i++){
+   const x=top.x,z=top.z;
+   stepBattle(battle,.01);
+   path+=Math.hypot(top.x-x,top.z-z);
+   const radius=Math.hypot(top.x,top.z);
+   assert.ok(radius<rail.railRadius-rail.captureWidth,'free travel stays clear of the teeth');
+   assert.ok(!top.railActive&&!top.pocketActive);
+   if(radius<rail.flatRadius)insideFlat+=.01;
+  }
+  assert.ok(path>7,'the top keeps travelling after it turns inward');
+  assert.ok(insideFlat>.5,'the orbit spends time on the central flat');
+ }
+});
+test('a tooth rebound can cross the bowl without repeatedly shuttling along a diameter',()=>{
+ for(const direction of [-1,1]){
+  const rail=railConfigForCount(2),battle=solo(95,rail.railRadius,2*direction),top=battle.tops[0];
+  Object.assign(top,{vx:7,spin:Math.PI/8,orbitDir:direction,railCooldown:0});
+  let previousAngle,closest=rail.railRadius,consecutive=0,longest=0,path=0,firstBounce=false;
+  for(let i=0;i<800;i++){
+   const x=top.x,z=top.z;
+   stepBattle(battle,.01);
+   path+=Math.hypot(top.x-x,top.z-z);
+   closest=Math.min(closest,Math.hypot(top.x,top.z));
+   for(const event of battle.events){
+    if(event.id!==top.id)continue;
+    if(event.type==='rail'){previousAngle=undefined;consecutive=0;}
+    if(event.type!=='rail-bounce')continue;
+    if(i===0)firstBounce=true;
+    const angle=Math.atan2(event.z,event.x);
+    if(previousAngle!==undefined){
+     const opposite=Math.cos(angle-previousAngle)<Math.cos(5*Math.PI/6);
+     consecutive=opposite&&closest<rail.railRadius*.3?consecutive+1:0;
+     longest=Math.max(longest,consecutive);
+    }
+    previousAngle=angle;closest=rail.railRadius;
+   }
+  }
+  assert.ok(firstBounce&&path>2*rail.arenaRadius,'the top rebounds and keeps travelling');
+  assert.ok(longest<=2,`the isolated top made ${longest} consecutive near-diameter crossings`);
+ }
+});
+test('successive complete laps can widen and tighten without touching the teeth',()=>{
+ const rail=railConfigForCount(2),fullTurn=2*Math.PI;
+ for(const direction of [-1,1]){
+  const battle=solo(95,2.5,4.5*direction),top=battle.tops[0];
+  top.orbitDir=direction;
+  const meanRadii=[];
+  let swept=0,radiusIntegral=0;
+  for(let i=0;i<2200;i++){
+   const x=top.x,z=top.z;
+   stepBattle(battle,.01);
+   const radius=Math.hypot(top.x,top.z);
+   const advance=direction*Math.atan2(x*top.z-z*top.x,x*top.x+z*top.z);
+   if(advance<=0||radius>=rail.railRadius-rail.captureWidth)break;
+   // Average radius by angle so a slow section of the lap has the same weight as a fast one.
+   radiusIntegral+=radius*Math.min(advance,fullTurn-swept);
+   swept+=advance;
+   if(swept>=fullTurn){
+    meanRadii.push(radiusIntegral/fullTurn);
+    swept-=fullTurn;
+    radiusIntegral=radius*swept;
+   }
+  }
+  const changes=meanRadii.slice(1).map((radius,i)=>radius-meanRadii[i]);
+  assert.ok(changes.some(delta=>delta>.15)&&changes.some(delta=>delta<-.15),
+   `the same top should make both wider and tighter laps: ${meanRadii}`);
+ }
+});
+test('low spin remains nearly stationary',()=>{
  const low=solo(10,1.2,.4),c=low.tops[0];for(let i=0;i<200;i++)stepBattle(low,.01);
  assert.ok(Math.hypot(c.x-1.2,c.z)<.3);assert.ok(Math.hypot(c.vx,c.vz)<.05);
+});
+test('mass offset bends free travel smoothly in the direction of the precession phase',()=>{
+ const launch=solo(95,2.6,4.5);
+ const rail=railConfigForCount(launch.tops.length);
+ function heading(massOffset,phase,direction){
+  const battle=structuredClone(launch),top=battle.tops[0];
+  top.massOffset=massOffset;top.precessionPhase=phase;top.vz*=direction;
+  for(let step=0;step<15;step++){
+   const vx=top.vx,vz=top.vz;
+   stepBattle(battle,.01);
+   assert.ok(Math.hypot(top.x,top.z)<rail.railRadius-rail.captureWidth);
+   assert.ok(Math.hypot(top.vx-vx,top.vz-vz)<.5,'no sudden turn within a 10ms step');
+  }
+  return Math.atan2(top.vz,top.vx);
+ }
+ for(const direction of [-1,1]){
+  const balanced=heading(0,0,direction);
+  for(const sign of [-1,1]){
+   const phase=sign*Math.PI/2;
+   const slight=sign*(heading(.025,phase,direction)-balanced);
+   const offset=sign*(heading(.05,phase,direction)-balanced);
+   assert.ok(slight>.005&&offset>slight,'the offset increases turning at the same phase');
+  }
+ }
+});
+test('older saved battles recover individual mass offsets and reproduce their resumed tracks',()=>{
+ const original=solo(95);
+ for(let i=0;i<20;i++)stepBattle(original);
+ const offsets=original.tops.map(t=>t.massOffset);
+ assert.ok(offsets.every(value=>value>0));
+ assert.notEqual(offsets[0],offsets[1]);
+ const legacy=structuredClone(original);
+ for(const top of legacy.tops){delete top.massOffset;delete top.precessionPhase;}
+ const replay=JSON.parse(JSON.stringify(legacy));
+ for(let i=0;i<50;i++){stepBattle(legacy);stepBattle(replay);}
+ assert.deepEqual(legacy.tops.map(t=>t.massOffset),offsets);
+ assert.ok(legacy.tops.every(t=>Number.isFinite(t.precessionPhase)));
+ assert.deepEqual(legacy,replay);
 });
 test('medium spin leaves the outer circle and traverses the central flat',()=>{
  const b=solo(50),a=b.tops[0];let minimumRadius=Infinity;
@@ -33,7 +153,7 @@ test('medium spin leaves the outer circle and traverses the central flat',()=>{
 });
 test('contact accelerates along the gear and the upper exit sends the top into the flat center',()=>{
  const b=solo(95),a=b.tops[0],c=railConfigForCount(2),angle=c.exitAngles[0]-.3;
- Object.assign(a,{x:Math.cos(angle)*c.railRadius,z:Math.sin(angle)*c.railRadius,y:surfaceHeight(c.railRadius,0,c.arenaRadius),vx:-Math.sin(angle)*7,vz:Math.cos(angle)*7,railCooldown:0});
+ Object.assign(a,{x:Math.cos(angle)*c.railRadius,z:Math.sin(angle)*c.railRadius,y:surfaceHeight(c.railRadius,0,c.arenaRadius),vx:-Math.sin(angle)*7,vz:Math.cos(angle)*7,spin:angle,railCooldown:0});
  const events=[];let crossed=false,exit;
  for(let i=0;i<120;i++){stepBattle(b,.01);events.push(...b.events);exit??=b.events.find(e=>e.type==='rail'&&e.reason==='port');if(exit&&Math.hypot(a.x,a.z)<c.flatRadius)crossed=true;}
  const entry=events.find(e=>e.type==='rail'&&e.phase==='enter');assert.ok(entry&&exit);assert.equal(exit.exitIndex,0);assert.ok(exit.z<0);assert.ok(exit.speedBefore>entry.speedBefore);assert.ok(crossed);assert.equal(a.pocketActive,false);

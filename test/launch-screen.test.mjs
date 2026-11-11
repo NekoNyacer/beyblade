@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {launchScreenReady} from '../public/assets/launch-screen.js';
+test('phone input requires both landscape and fullscreen',()=>{for(const landscape of [true,false])for(const fullscreen of [true,false])assert.equal(launchScreenReady({mobile:true,landscape,fullscreen}),landscape&&fullscreen);});
+test('installed full-screen app still requires landscape; desktop stays usable',()=>{assert.equal(launchScreenReady({mobile:true,landscape:false,fullscreen:false,standalone:true}),false);assert.equal(launchScreenReady({mobile:true,landscape:true,fullscreen:false,standalone:true}),true);assert.equal(launchScreenReady({mobile:false,landscape:false,fullscreen:false}),true);});
