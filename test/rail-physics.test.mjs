@@ -16,7 +16,7 @@ test('rail entry depends on local contact and signed tangential approach, not an
   const radial=(a.x*a.vx+a.z*a.vz)/Math.hypot(a.x,a.z),speed=Math.hypot(a.vx,a.vz);
   assert.ok(Math.abs(radial)/speed<.3,'boost follows local tangent');
  }
- for(const [radial,tangent] of [[-2,5],[1,0],[6,5]]){
+ for(const [radial,tangent] of [[-2,5],[1,0],[7,5]]){
   const b=contact(.3,radial,tangent);stepBattle(b,.01);assert.equal(b.tops[0].railActive,false);
  }
  const b=contact();b.tops[0].x=0;b.tops[0].z=1;stepBattle(b,.01);assert.equal(b.tops[0].railActive,false);

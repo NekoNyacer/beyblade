@@ -77,7 +77,9 @@ test('a slowly climbing high-spin top loses outward speed and rolls back down th
 });
 test('a freely circling high-spin top sweeps into the central flat',()=>{
  for(const direction of [-1,1]){
-  const battle=solo(95,2.5,direction*4.5),top=battle.tops[0],rail=railConfigForCount(2);
+  // The lower duel bank lets the former 4.5-unit launch reach the teeth. Use
+  // a slower free orbit here to isolate inward travel without rail contact.
+  const battle=solo(95,2.5,direction*2.75),top=battle.tops[0],rail=railConfigForCount(2);
   top.orbitDir=direction;
   let path=0,insideFlat=0;
   for(let i=0;i<400;i++){
@@ -124,7 +126,7 @@ test('a tooth rebound can cross the bowl without repeatedly shuttling along a di
 test('successive complete laps can widen and tighten without touching the teeth',()=>{
  const rail=railConfigForCount(2),fullTurn=2*Math.PI;
  for(const direction of [-1,1]){
-  const battle=solo(95,2.45,4.75*direction),top=battle.tops[0];
+  const battle=solo(95,2.45,3*direction),top=battle.tops[0];
   top.orbitDir=direction;
   const meanRadii=[];
   let swept=0,radiusIntegral=0;

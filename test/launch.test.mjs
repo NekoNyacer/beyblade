@@ -9,7 +9,7 @@ test('coalesced horizontal pointer samples retain a monotonic event clock',()=>{
 test('launch angles validate before accepting a pull and are used by authoritative battle',()=>{const room=newRoom(),a=joinRoom(room,'A');joinRoom(room,'B');prepare(room);beginCountdown(room,0);advanceLaunch(room,3000);for(const angle of [NaN,Infinity,-1,26,'15'])assert.throws(()=>pull(room,a.id,room.round.id,.5,3001,angle));assert.equal(room.round.pulledIds.length,0);pull(room,a.id,room.round.id,.8,3001,20);advanceLaunch(room,11000);const top=room.battle.tops.find(t=>t.id===a.id);assert.equal(top.launchPower,.8);assert.equal(top.launchTilt,20*Math.PI/180);assert.ok(Math.abs(top.energy-113)<1e-9);});
 test('tilt changes launch path without inventing extra initial energy',()=>{const players=[{id:'a'},{id:'b'}],flat=createBattle(players,12,{a:.5},{a:0}),tilted=createBattle(players,12,{a:.5},{a:25});assert.equal(flat.tops[0].energy,tilted.tops[0].energy);assert.notEqual(flat.tops[0].vx,tilted.tops[0].vx);assert.ok(Math.abs(Math.hypot(flat.tops[0].vx,flat.tops[0].vz)-Math.hypot(tilted.tops[0].vx,tilted.tops[0].vz))<1e-9);});
 test('overdriven rail contact can strike the shield or reach the wide front catch',()=>{
- for(const [angle,target] of [[-.8,'shield'],[.3,'pocket']]){
+ for(const [angle,target] of [[-.8,'shield'],[.7,'pocket']]){
   const b=createBattle([{id:'a'},{id:'b'}],21,{a:1}),a=b.tops[0],r=b.railRadius;
   const x=r*Math.cos(angle),z=r*Math.sin(angle);
   Object.assign(a,{x,z,y:surfaceHeight(x,z,b.arenaRadius),vy:0,vx:-12*Math.sin(angle),vz:12*Math.cos(angle),railActive:true,railDir:1,railEntered:-.3,railUntil:3});

@@ -8,15 +8,20 @@ export function pocketIndexAtAngle(angle){
 }
 export const isRingOutAngle = angle => pocketIndexAtAngle(angle)>=0;
 const RIM_HEIGHT=1.30;
+// A small duel bowl has a shorter climb. Lower its crest rather than applying
+// an invisible uphill assist; large arenas retain the original 1.30-unit rim.
+export const rimHeightForRadius=r=>1.05+.25*Math.max(0,Math.min(1,(r-3.35)/1.04));
 export const BOWL_SKIN_OFFSET=-.035, CENTER_SKIN_Y=BOWL_SKIN_OFFSET;
 // Radial distance beyond the crest and surface height of the silver shoulder.
 export const SHOULDER_PROFILE=[[0,RIM_HEIGHT+BOWL_SKIN_OFFSET],[.12,RIM_HEIGHT-.03],[.48,RIM_HEIGHT-.14],[.88,RIM_HEIGHT-.38],[.97,-.74]];
-export function shoulderHeightAtOffset(offset){
+export function shoulderHeightAtOffset(offset,arenaRadius){
  if(offset<0)return null;
+ const shift=arenaRadius===undefined?0:rimHeightForRadius(arenaRadius)-RIM_HEIGHT;
+ const heightAt=i=>SHOULDER_PROFILE[i][1]+(i===SHOULDER_PROFILE.length-1?0:shift);
  for(let i=1;i<SHOULDER_PROFILE.length;i++){
-  const [end,height]=SHOULDER_PROFILE[i];
+  const [end]=SHOULDER_PROFILE[i],height=heightAt(i);
   if(offset<=end){
-   const [start,previous]=SHOULDER_PROFILE[i-1];
+   const [start]=SHOULDER_PROFILE[i-1],previous=heightAt(i-1);
    return previous+(height-previous)*(offset-start)/(end-start);
   }
  }
@@ -25,15 +30,18 @@ export function shoulderHeightAtOffset(offset){
 export function shoulderHeight(x,z,arenaRadius){
  const offset=Math.hypot(x,z)-arenaRadius;
  if(offset<=0||isRingOutAngle(Math.atan2(z,x)))return null;
- return shoulderHeightAtOffset(offset);
+ return shoulderHeightAtOffset(offset,arenaRadius);
 }
 export const arenaRadiusForCount = n => 3.35 + Math.min(1.65,Math.max(0,n-2)*.13);
 export function railConfigForCount(n) {
- const arenaRadius=arenaRadiusForCount(n),pocketDepth=.45;
- return {arenaRadius,flatRadius:arenaRadius*.60,rimHeight:RIM_HEIGHT,railRadius:arenaRadius-.20,exitAngles:RAIL_EXIT_ANGLES,exitHalfWidth:EXIT_HALF_WIDTH,
+ const arenaRadius=arenaRadiusForCount(n),rimHeight=rimHeightForRadius(arenaRadius),pocketDepth=.45;
+ const largeBowl=Math.max(0,Math.min(1,(arenaRadius-3.35)/1.04));
+ return {arenaRadius,flatRadius:arenaRadius*.60,rimHeight,railRadius:arenaRadius-.20,exitAngles:RAIL_EXIT_ANGLES,exitHalfWidth:EXIT_HALF_WIDTH,
   ringOutAngles:RING_OUT_ANGLES,ringOutHalfWidth:RING_OUT_HALF_WIDTH,ringOutHalfWidths:RING_OUT_HALF_WIDTHS,
-  pocketOffset:.22,pocketDepth,pocketFloor:RIM_HEIGHT-pocketDepth,pocketHalfWidth:.35,pocketOuterOffset:.58,pocketMinEnergy:22,shieldHeight:2.42,
+  pocketOffset:.22,pocketDepth,pocketFloor:rimHeight-pocketDepth,pocketHalfWidth:.35,pocketOuterOffset:.58,pocketMinEnergy:22,shieldHeight:rimHeight+1.12,
   maxSpeed:14,boostAcceleration:52,energyCost:2.04,minEnergy:32,releaseEnergy:24,minTangent:1.9,
+  maxEntryRadialRatio:1.25,meshAllowance:.55,
+  bankFriction:.65+.30*largeBowl,maxBankFriction:4.2+1.5*largeBowl,bankRadialDrag:.24+.11*largeBowl,
   captureWidth:.37,maxDuration:n<=2?2.8:2.2,cooldown:.28};
 }
 
@@ -75,19 +83,19 @@ export function surfaceHeightAtRadius(radius,r){
   const u=groovePosition(radius,r);
   return Math.abs(u)<1?-GROOVE_DEPTH*(1-u*u)**3:0;
  }
- return RIM_HEIGHT*Math.min(1,(radius-r*.60)/(r*.40))**2;
+ return rimHeightForRadius(r)*Math.min(1,(radius-r*.60)/(r*.40))**2;
 }
 export function surfaceHeight(x,z,r){
  const radius=Math.hypot(x,z),flat=r*.60;
  if(radius<=flat||radius>=r||!withinWings(x,z,0))return surfaceHeightAtRadius(radius,r);
  const distance=Math.atan2(Math.abs(x*exitZ-z*exitX),x*exitX+z*exitZ);
  const inset=dashRailInset(distance),run=r-flat-inset;
- const crest=RIM_HEIGHT-(RIM_HEIGHT-EXIT_HEIGHT)*inset/MAX_FOLD_INSET;
+ const rimHeight=rimHeightForRadius(r),crest=rimHeight-(rimHeight-EXIT_HEIGHT)*inset/MAX_FOLD_INSET;
  const lipWidth=dashBackLipWidth(inset);
  if(radius>r-lipWidth){
   // Keep the rear pocket sill at its normal height behind the lowered gear.
   const t=(radius-r+lipWidth)/lipWidth;
-  return crest+(RIM_HEIGHT-crest)*t*t*(3-2*t);
+  return crest+(rimHeight-crest)*t*t*(3-2*t);
  }
  const u=Math.min(1,(radius-flat)/run);
  // Round the last part of the climb into the ledge that carries the green tab.
@@ -96,7 +104,7 @@ export function surfaceHeight(x,z,r){
  const t=(u-1+bevel)/bevel;
  return crest*(u*u+2*bevel*t*t*(1-t));
 }
-const radialSlope=(radius,r)=>radius<r*.60?grooveSlope(radius,r):2*RIM_HEIGHT*Math.min(1,(radius-r*.60)/(r*.40))/(r*.40);
+const radialSlope=(radius,r)=>radius<r*.60?grooveSlope(radius,r):2*rimHeightForRadius(r)*Math.min(1,(radius-r*.60)/(r*.40))/(r*.40);
 export function surfaceGradient(x,z,r){
  const radius=Math.hypot(x,z);
  if(radius===0||radius>r)return {x:0,z:0};

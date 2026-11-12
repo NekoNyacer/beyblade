@@ -3,7 +3,7 @@ const MERIDIAN_SPACING=.035,SKIN_CLEARANCE=.004;
 
 function skinAtRadius(radius,arenaRadius){
   if(radius<=arenaRadius)return surfaceHeightAtRadius(radius,arenaRadius)+BOWL_SKIN_OFFSET;
-  return shoulderHeightAtOffset(radius-arenaRadius)??SHOULDER_PROFILE.at(-1)[1];
+  return shoulderHeightAtOffset(radius-arenaRadius,arenaRadius)??SHOULDER_PROFILE.at(-1)[1];
 }
 export function bowlSkinY(x,z,arenaRadius){
   const radius=Math.hypot(x,z);

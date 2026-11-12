@@ -44,8 +44,8 @@ test('the side shield ends a dash and returns finite momentum inward',()=>{
  Object.assign(b.tops[1],{x:0,z:0,y:0,vx:0,vz:0});stepBattle(b,.001);
  assert.ok(b.events.some(e=>e.type==='shield'&&e.id===t.id));assert.ok(t.vx<0);assert.equal(t.dashUntil,0);assert.equal(t.centerRollUntil,0);
 });
-test('seed 124 reproduces a real dash hit, shield return, remesh and counterattack',()=>{
- const b=launchBattle(players,124,{'0':.5,'1':.5}),defender=b.tops[1];let stage=0;
+test('seed 45 reproduces a real dash hit, shield return, remesh and counterattack',()=>{
+ const b=launchBattle(players,45,{'0':.5,'1':.5}),defender=b.tops[1];let stage=0;
  while(!b.done&&b.t<6){
   stepBattle(b);
   for(const e of b.events){

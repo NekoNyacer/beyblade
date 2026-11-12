@@ -1,4 +1,4 @@
-import {BOWL_SKIN_OFFSET, RING_OUT_ANGLES, RING_OUT_HALF_WIDTHS, shoulderHeightAtOffset, surfaceHeight, surfaceGradient} from './rail-config.js';
+import {BOWL_SKIN_OFFSET, RING_OUT_ANGLES, RING_OUT_HALF_WIDTHS, rimHeightForRadius, shoulderHeightAtOffset, surfaceHeight, surfaceGradient} from './rail-config.js';
 
 export const SPARK_CAPACITY=24;
 export const NEUTRAL_SPARK_COLOR='#dfe8ee';
@@ -9,15 +9,16 @@ export function sparkColorsForEvent(event,players){
 export const SPARK_CLEARANCE=.026;
 const clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
 
-export function sparkFloorHeight(x,z,r,pocketFloor=.85){
+export function sparkFloorHeight(x,z,r,pocketFloor=rimHeightForRadius(r)-.45){
   const radius=Math.hypot(x,z),offset=radius-r;
   if(offset<=0)return surfaceHeight(x,z,r)+BOWL_SKIN_OFFSET;
-  const shoulder=shoulderHeightAtOffset(offset);
+  const shoulder=shoulderHeightAtOffset(offset,r);
   if(shoulder===null)return null;
   const angle=Math.atan2(z,x),index=RING_OUT_ANGLES.findIndex((a,i)=>Math.abs(Math.atan2(Math.sin(angle-a),Math.cos(angle-a)))<RING_OUT_HALF_WIDTHS[i]);
   if(index<0)return shoulder;
   // Match the molded catch profile, including its raised side seams, rather than an infinite flat floor.
-  const profile=[[0,1.3+BOWL_SKIN_OFFSET],[.002,1.3+BOWL_SKIN_OFFSET],[.005,pocketFloor],[.60,pocketFloor],[.69,pocketFloor+.025],[.81,pocketFloor+.075],[.88,shoulderHeightAtOffset(.88)],[.97,shoulderHeightAtOffset(.97)]];
+  const rimHeight=rimHeightForRadius(r);
+  const profile=[[0,rimHeight+BOWL_SKIN_OFFSET],[.002,rimHeight+BOWL_SKIN_OFFSET],[.005,pocketFloor],[.60,pocketFloor],[.69,pocketFloor+.025],[.81,pocketFloor+.075],[.88,shoulderHeightAtOffset(.88,r)],[.97,shoulderHeightAtOffset(.97,r)]];
   const row=profile.findIndex(([end])=>end>=offset),[start,y0]=profile[row-1],[end,y1]=profile[row];
   const floor=y0+(y1-y0)*(offset-start)/(end-start);
   const distance=Math.abs(Math.atan2(Math.sin(angle-RING_OUT_ANGLES[index]),Math.cos(angle-RING_OUT_ANGLES[index])))/RING_OUT_HALF_WIDTHS[index];
@@ -46,7 +47,7 @@ export function resetSparkBurst(burst,event,origin,strength){
   return burst;
 }
 
-export function advanceSparkBurst(burst,targetAge,r,pocketFloor=.85){
+export function advanceSparkBurst(burst,targetAge,r,pocketFloor=rimHeightForRadius(r)-.45){
   const target=clamp(targetAge,burst.age,burst.duration);
   while(burst.age<target-1e-8){
     const dt=Math.min(1/120,target-burst.age),drag=Math.exp(-.65*dt);

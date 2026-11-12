@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {SPARK_CAPACITY,NEUTRAL_SPARK_COLOR,sparkColorsForEvent,SPARK_CLEARANCE,createSparkBurst,resetSparkBurst,advanceSparkBurst,sparkFloorHeight} from '../public/assets/collision-sparks.js';
-import {surfaceHeight,BOWL_SKIN_OFFSET,RING_OUT_ANGLES,RING_OUT_HALF_WIDTHS,shoulderHeightAtOffset} from '../public/assets/rail-config.js';
+import {surfaceHeight,BOWL_SKIN_OFFSET,RING_OUT_ANGLES,RING_OUT_HALF_WIDTHS,shoulderHeightAtOffset,railConfigForCount} from '../public/assets/rail-config.js';
 const event={type:'hit',x:0,y:0,z:0,nx:1,nz:0,power:8,eventId:'spark-test',aId:'red',bId:'blue'};
 const burst=(strength=.8,e=event,origin={x:0,y:.48,z:0})=>resetSparkBurst(createSparkBurst(),e,origin,strength);
 
@@ -39,10 +39,13 @@ test('curved bowl, groove, shoulder and catch surfaces never leave active partic
   for(let t=0;t<1.2;t+=1/30){advanceSparkBurst(b,t,3.35);for(const p of b.particles){if(p.active)assert.ok(p.y>=sparkFloorHeight(p.x,p.z,3.35)+SPARK_CLEARANCE-1e-9);}}
  }
  assert.equal(sparkFloorHeight(1.8,0,3.35),surfaceHeight(1.8,0,3.35)+BOWL_SKIN_OFFSET);
- assert.equal(sparkFloorHeight(3.65,0,3.35),shoulderHeightAtOffset(.3));
- for(const angle of RING_OUT_ANGLES)assert.ok(Math.abs(sparkFloorHeight(3.75*Math.cos(angle),3.75*Math.sin(angle),3.35)-.85)<1e-9);
+ assert.equal(sparkFloorHeight(3.65,0,3.35),shoulderHeightAtOffset(.3,3.35));
+ for(const count of [2,10,16])for(const angle of RING_OUT_ANGLES){
+  const c=railConfigForCount(count),radius=c.arenaRadius+.4;
+  assert.ok(Math.abs(sparkFloorHeight(radius*Math.cos(angle),radius*Math.sin(angle),c.arenaRadius)-c.pocketFloor)<1e-9);
+ }
  const angle=RING_OUT_ANGLES[0]+RING_OUT_HALF_WIDTHS[0]*.9;
- assert.ok(sparkFloorHeight(3.75*Math.cos(angle),3.75*Math.sin(angle),3.35)>.85);
+ assert.ok(sparkFloorHeight(3.75*Math.cos(angle),3.75*Math.sin(angle),3.35)>railConfigForCount(2).pocketFloor);
  assert.equal(sparkFloorHeight(10,0,3.35),null);
 });
 

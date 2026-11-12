@@ -127,12 +127,12 @@ export function stepBattle(b,dt=1/25){
    a.railTouching=true;
    // Test the bit's tooth orientation once on contact. It must leave the teeth before another try.
    const toothPhase=a.physics.gearTeeth*(a.spin-angle);
-   const aligned=Math.cos(toothPhase)>a.physics.meshThreshold-(tangent<0?.8:0);
+   const aligned=Math.cos(toothPhase)>a.physics.meshThreshold-rail.meshAllowance;
    const lean=Math.min(1,Math.abs(a.tilt)/.16);
    const captureEnergy=Math.max(rail.releaseEnergy+1,rail.minEnergy-.32*lean*Math.max(0,along-2)**2);
-   const forward=tangent<0||(tangent>5.5&&Math.abs(radial)<.20*tangent);
-   // The teeth accept an oblique approach up to about 49 degrees, but a square strike still rebounds.
-   const canMesh=aligned&&forward&&along>rail.minTangent&&radial<=1.15*along&&a.energy>captureEnergy&&Math.abs(a.tilt)<.62;
+   // Both travel directions can mesh on contact, up to about 51 degrees from
+   // the tangent. A square strike, bad tooth phase or spent bit still rebounds.
+   const canMesh=aligned&&along>rail.minTangent&&radial<=rail.maxEntryRadialRatio*along&&a.energy>captureEnergy&&Math.abs(a.tilt)<.62;
    if(!canMesh){
     // A grazing bit meets the leading flank. On a square strike the exposed
     // side of the spinning tooth determines the sideways part of the rebound.
@@ -266,8 +266,8 @@ export function stepBattle(b,dt=1/25){
     const downhill=-slope*Math.max(0,load)/(1+slope*slope);
     // The tip scrubs off tangential speed on the bank, up to the sliding friction limit.
     const bankContact=Math.min(1,Math.abs(slope));
-    const bankFriction=a.physics.grip*bankContact*Math.max(-5.7,Math.min(5.7,.95*tangent));
-    const radialDrag=.35*bankContact*radial;
+    const bankFriction=a.physics.grip*bankContact*Math.max(-rail.maxBankFriction,Math.min(rail.maxBankFriction,rail.bankFriction*tangent));
+    const radialDrag=rail.bankRadialDrag*bankContact*radial;
     a.vx+=(nx*(downhill-radialDrag)+nz*bankFriction)*h;
     a.vz+=(nz*(downhill-radialDrag)-nx*bankFriction)*h;
     // An off-center tip rolls in an arc. Precession varies the lean over a

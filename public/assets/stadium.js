@@ -170,9 +170,9 @@ export function buildStadium(stage, rails, config) {
   const floor=config.pocketFloor;
   const trayProfile=[[0,rimHeight+BOWL_SKIN_OFFSET],[.002,rimHeight+BOWL_SKIN_OFFSET],
     [.005,floor],[.12,floor],[.22,floor],[.48,floor],[.60,floor],[.69,floor+.025],
-    [.81,floor+.075],[.88,shoulderHeightAtOffset(.88)],[.97,shoulderHeightAtOffset(.97)]];
-  const lipProfile=SHOULDER_PROFILE.map(([offset,y])=>new THREE.Vector2(r+offset,y));
-  const trayRings=trayProfile.map(([offset])=>new THREE.Vector2(r+offset,shoulderHeightAtOffset(offset)));
+    [.81,floor+.075],[.88,shoulderHeightAtOffset(.88,r)],[.97,shoulderHeightAtOffset(.97,r)]];
+  const lipProfile=SHOULDER_PROFILE.map(([offset])=>new THREE.Vector2(r+offset,shoulderHeightAtOffset(offset,r)));
+  const trayRings=trayProfile.map(([offset])=>new THREE.Vector2(r+offset,shoulderHeightAtOffset(offset,r)));
   const trayMaterial=basinMaterial.clone();trayMaterial.vertexColors=true;
   // Only the inside edge is sheltered by the overhanging rail.
   const sheltered=new THREE.Color(0x495969),exposed=new THREE.Color(0xffffff),tint=new THREE.Color();
